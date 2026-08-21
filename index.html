@@ -12,6 +12,7 @@
     <nav>
       <a class="active" href="index.html">MAIN</a>
       <a href="#characters">CHARACTER</a>
+      <a href="#pairs">PAIR</a>
       <a class="admin-link" href="admin.html">ADMIN</a>
     </nav>
   </header>
@@ -32,11 +33,25 @@
         <p class="muted">캐릭터를 불러오는 중...</p>
       </div>
     </section>
+
+    <section id="pairs" class="section">
+      <div class="section-heading pair-heading-row">
+        <div>
+          <p class="eyebrow">RELATIONSHIP ARCHIVE</p>
+          <h2>PAIR</h2>
+        </div>
+        <a id="new-pair-link" class="button-link hidden" href="pair.html?new=1">+ 새 페어</a>
+      </div>
+      <div id="pair-grid" class="character-grid">
+        <p class="muted">페어를 불러오는 중...</p>
+      </div>
+    </section>
   </main>
 
   <footer>© elingne</footer>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
-  <script src="app.js"></script>
+  <script src="app-v4.js"></script>
 </body>
 </html>

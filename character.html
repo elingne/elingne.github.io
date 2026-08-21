@@ -12,6 +12,7 @@
     <nav>
       <a href="index.html">MAIN</a>
       <a class="active" href="index.html#characters">CHARACTER</a>
+      <a href="index.html#pairs">PAIR</a>
       <a id="auth-link" class="admin-link" href="admin.html">ADMIN</a>
     </nav>
   </header>
@@ -34,7 +35,7 @@
     <section id="profile" class="tab-panel active">
       <div class="panel-head">
         <h2>PROFILE</h2>
-        <button class="owner-only hidden" data-open-editor="profile">+ 프로필 블록</button>
+        <button class="owner-only hidden" data-open-editor="profile">+ 프로필 게시물</button>
       </div>
       <div id="profile-feed" class="feed"></div>
     </section>
@@ -52,50 +53,52 @@
         <h2>GALLERY</h2>
         <button class="owner-only hidden" data-open-editor="gallery">+ 갤러리 게시물</button>
       </div>
-      <div id="gallery-feed" class="gallery-feed"></div>
+      <div id="gallery-feed" class="feed"></div>
     </section>
   </main>
 
   <dialog id="editor-dialog" class="editor-dialog">
     <form method="dialog" class="editor-shell">
       <div class="editor-top">
-        <h2 id="editor-title">편집</h2>
+        <h2 id="editor-title">게시물 편집</h2>
         <button value="cancel" class="ghost">닫기</button>
       </div>
 
       <input id="edit-kind" type="hidden">
       <input id="edit-id" type="hidden">
 
-      <label id="profile-type-wrap" class="hidden">프로필 블록 종류
-        <select id="profile-type">
-          <option value="text">텍스트</option>
-          <option value="image">이미지</option>
-        </select>
+      <label id="title-wrap">제목
+        <input id="edit-title" type="text" placeholder="선택사항">
       </label>
 
-      <label id="title-wrap" class="hidden">제목
-        <input id="edit-title" type="text">
-      </label>
-
-      <label id="body-wrap">내용
-        <textarea id="edit-body" rows="10"></textarea>
-      </label>
-
-      <label id="image-wrap" class="hidden">이미지
-        <input id="edit-image" type="file" accept="image/*">
-      </label>
-
-      <label id="caption-wrap" class="hidden">이미지 캡션
-        <input id="edit-caption" type="text">
+      <label>내용
+        <textarea id="edit-body" rows="10" placeholder="텍스트 없이 사진만 올려도 됩니다."></textarea>
       </label>
 
       <label id="sort-wrap" class="hidden">프로필 표시 순서
         <input id="edit-sort" type="number" value="0">
       </label>
 
+      <div class="multi-image-box">
+        <div class="subhead">
+          <strong>이미지</strong>
+          <span class="muted">여러 장 선택 가능</span>
+        </div>
+        <input id="edit-images" type="file" accept="image/*" multiple>
+        <div id="new-image-caption-list" class="image-edit-list"></div>
+      </div>
+
+      <div id="existing-images-wrap" class="multi-image-box hidden">
+        <div class="subhead">
+          <strong>현재 이미지</strong>
+          <span class="muted">캡션 수정 또는 삭제 가능</span>
+        </div>
+        <div id="existing-image-list" class="image-edit-list"></div>
+      </div>
+
       <div class="button-row">
         <button id="save-editor-btn" value="cancel" type="button">저장</button>
-        <button id="delete-editor-btn" value="cancel" type="button" class="danger hidden">삭제</button>
+        <button id="delete-editor-btn" value="cancel" type="button" class="danger hidden">게시물 삭제</button>
       </div>
       <p id="editor-msg" class="status"></p>
     </form>
@@ -122,8 +125,9 @@
   </dialog>
 
   <footer>© elingne</footer>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
-  <script src="character-v2.js"></script>
+  <script src="character-v3.js"></script>
 </body>
 </html>
