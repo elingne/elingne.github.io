@@ -1104,3 +1104,220 @@ footer {
     padding: 20px;
   }
 }
+
+/* v6: YouTube BGM playlist */
+.main-with-bgm {
+  width: min(1420px, 94vw);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1100px);
+  gap: 42px;
+  align-items: start;
+}
+.main-with-bgm > main {
+  width: 100%;
+  min-width: 0;
+}
+.bgm-panel {
+  position: sticky;
+  top: 92px;
+  margin-top: 42px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(255,255,255,.9);
+  box-shadow: 0 12px 32px rgba(110, 116, 145, .08);
+}
+.bgm-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+.bgm-heading .eyebrow { margin: 0 0 2px; }
+.bgm-heading h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  letter-spacing: .04em;
+}
+.bgm-state {
+  flex: none;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--pink-soft, #fff0f5);
+  color: var(--muted);
+  font-size: .68rem;
+}
+.youtube-player {
+  width: 100%;
+  min-height: 200px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: #f2f3f8;
+}
+.youtube-player iframe {
+  width: 100%;
+  height: 200px;
+  display: block;
+}
+.bgm-controls {
+  display: grid;
+  grid-template-columns: 42px 42px 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-top: 12px;
+}
+.bgm-control {
+  width: 42px;
+  height: 38px;
+  padding: 0;
+  border-radius: 12px;
+}
+.bgm-volume {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 7px;
+  align-items: center;
+  font-size: .68rem;
+  color: var(--muted);
+}
+.bgm-volume input {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  accent-color: var(--text);
+}
+.bgm-now {
+  margin: 14px 0 8px;
+  font-size: .82rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bgm-list {
+  display: grid;
+  gap: 6px;
+}
+.bgm-track {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 28px minmax(0,1fr);
+  gap: 8px;
+  align-items: center;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+.bgm-track:hover,
+.bgm-track.active {
+  background: linear-gradient(135deg, var(--pink-soft, #fff2f7), var(--sky-soft, #eff9ff));
+  border-color: var(--line);
+}
+.bgm-track-no {
+  color: var(--muted);
+  font-size: .7rem;
+}
+.bgm-track-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .78rem;
+}
+.bgm-note,
+.bgm-empty {
+  margin: 10px 0 0;
+  font-size: .72rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.bgm-admin-panel {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.bgm-admin-panel h2 { margin-bottom: 6px; }
+.bgm-admin-add {
+  display: grid;
+  grid-template-columns: 1fr .7fr auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 16px;
+}
+.bgm-admin-add label { margin: 0; }
+.bgm-admin-add button { margin-bottom: 0; }
+.bgm-admin-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 18px;
+}
+.bgm-admin-row {
+  display: grid;
+  grid-template-columns: 32px minmax(0,1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+.bgm-admin-order {
+  color: var(--muted);
+  font-size: .72rem;
+}
+.bgm-admin-copy { min-width: 0; }
+.bgm-admin-title {
+  display: block;
+  font-size: .84rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bgm-admin-url {
+  display: block;
+  color: var(--muted);
+  font-size: .68rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bgm-admin-actions { display: flex; gap: 6px; }
+.bgm-admin-actions button {
+  padding: 6px 9px;
+  border-radius: 9px;
+  font-size: .75rem;
+}
+
+@media (max-width: 1050px) {
+  .main-with-bgm {
+    grid-template-columns: 220px minmax(0,1fr);
+    gap: 26px;
+  }
+}
+@media (max-width: 820px) {
+  .main-with-bgm {
+    width: min(92vw, 1100px);
+    grid-template-columns: 1fr;
+  }
+  .bgm-panel {
+    position: static;
+    margin: 26px 0 0;
+  }
+  .youtube-player,
+  .youtube-player iframe { min-height: 220px; height: 220px; }
+  .bgm-list {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+  .bgm-admin-add { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  .bgm-list { grid-template-columns: 1fr; }
+  .bgm-admin-row { grid-template-columns: 26px minmax(0,1fr); }
+  .bgm-admin-actions { grid-column: 2; }
+}

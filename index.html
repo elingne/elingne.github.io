@@ -17,43 +17,69 @@
     </nav>
   </header>
 
-  <main>
-    <section class="hero hero-profile">
-      <div id="main-profile-image" class="main-profile-image"></div>
-      <div class="main-profile-copy">
-        <p class="eyebrow">ORIGINAL CHARACTER ARCHIVE</p>
-        <h1 id="main-title">MAIN</h1>
-        <p id="main-text">자캐와 커뮤니티 활동을 정리하는 개인 홈페이지입니다.</p>
-        <button id="edit-main-btn" class="ghost owner-only hidden">메인 수정</button>
-      </div>
-    </section>
-
-    <section id="characters" class="section">
-      <div class="section-heading pair-heading-row">
+  <div class="main-with-bgm">
+    <aside id="bgm-panel" class="bgm-panel" aria-label="BGM 플레이리스트">
+      <div class="bgm-heading">
         <div>
-          <p class="eyebrow">ARCHIVE</p>
-          <h2>CHARACTER</h2>
+          <p class="eyebrow">YOUTUBE BGM</p>
+          <h2>PLAYLIST</h2>
         </div>
-        <button id="new-character-btn" class="owner-only hidden">+ 새 캐릭터</button>
+        <span id="bgm-state" class="bgm-state">준비 중</span>
       </div>
-      <div id="character-grid" class="character-grid">
-        <p class="muted">캐릭터를 불러오는 중...</p>
-      </div>
-    </section>
 
-    <section id="pairs" class="section">
-      <div class="section-heading pair-heading-row">
-        <div>
-          <p class="eyebrow">RELATIONSHIP ARCHIVE</p>
-          <h2>PAIR</h2>
+      <div id="youtube-player" class="youtube-player"></div>
+
+      <div class="bgm-controls">
+        <button id="bgm-play" type="button" class="bgm-control" aria-label="재생">▶</button>
+        <button id="bgm-pause" type="button" class="bgm-control ghost" aria-label="일시정지">Ⅱ</button>
+        <label class="bgm-volume">VOL
+          <input id="bgm-volume" type="range" min="0" max="100" value="45" aria-label="BGM 볼륨" />
+        </label>
+      </div>
+
+      <p id="bgm-now" class="bgm-now">재생할 곡을 불러오는 중...</p>
+      <div id="bgm-list" class="bgm-list"></div>
+      <p id="bgm-note" class="bgm-note hidden">브라우저가 소리 자동재생을 막았어요. ▶ 버튼을 한 번 눌러주세요.</p>
+    </aside>
+
+    <main>
+      <section class="hero hero-profile">
+        <div id="main-profile-image" class="main-profile-image"></div>
+        <div class="main-profile-copy">
+          <p class="eyebrow">ORIGINAL CHARACTER ARCHIVE</p>
+          <h1 id="main-title">MAIN</h1>
+          <p id="main-text">자캐와 커뮤니티 활동을 정리하는 개인 홈페이지입니다.</p>
+          <button id="edit-main-btn" class="ghost owner-only hidden">메인 수정</button>
         </div>
-        <a id="new-pair-link" class="button-link owner-only hidden" href="pair.html?new=1">+ 새 페어</a>
-      </div>
-      <div id="pair-grid" class="character-grid">
-        <p class="muted">페어를 불러오는 중...</p>
-      </div>
-    </section>
-  </main>
+      </section>
+
+      <section id="characters" class="section">
+        <div class="section-heading pair-heading-row">
+          <div>
+            <p class="eyebrow">ARCHIVE</p>
+            <h2>CHARACTER</h2>
+          </div>
+          <button id="new-character-btn" class="owner-only hidden">+ 새 캐릭터</button>
+        </div>
+        <div id="character-grid" class="character-grid">
+          <p class="muted">캐릭터를 불러오는 중...</p>
+        </div>
+      </section>
+
+      <section id="pairs" class="section">
+        <div class="section-heading pair-heading-row">
+          <div>
+            <p class="eyebrow">RELATIONSHIP ARCHIVE</p>
+            <h2>PAIR</h2>
+          </div>
+          <a id="new-pair-link" class="button-link owner-only hidden" href="pair.html?new=1">+ 새 페어</a>
+        </div>
+        <div id="pair-grid" class="character-grid">
+          <p class="muted">페어를 불러오는 중...</p>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <dialog id="main-dialog" class="editor-dialog">
     <form method="dialog" class="editor-shell">
@@ -79,6 +105,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
-  <script src="app-v5.js"></script>
+  <script src="app-v6.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
