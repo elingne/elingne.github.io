@@ -517,6 +517,51 @@ document.getElementById("save-character-btn").addEventListener("click", async ()
   }
 });
 
+
+document.getElementById("delete-character-btn").addEventListener("click", async () => {
+  if (!confirm("이 캐릭터를 삭제할까요? 연결된 프로필/로그/갤러리 데이터도 함께 삭제됩니다.")) return;
+
+  try {
+    // Storage에 남아 있는 관련 이미지들을 가능한 범위에서 먼저 정리
+    const urls = new Set();
+
+    if (character?.image_url) urls.add(character.image_url);
+
+    for (const p of profilePosts || []) {
+      if (p.image_url) urls.add(p.image_url);
+    }
+
+    for (const g of galleryPosts || []) {
+      if (g.image_url) urls.add(g.image_url);
+    }
+
+    for (const img of postImages || []) {
+      if (img.image_url) urls.add(img.image_url);
+    }
+
+    const paths = [...urls]
+      .map(storagePathFromUrl)
+      .filter(Boolean);
+
+    if (paths.length) {
+      await db.storage.from("gallery").remove(paths);
+    }
+
+    const { error } = await db
+      .from("characters")
+      .delete()
+      .eq("id", characterId);
+
+    if (error) throw error;
+
+    alert("캐릭터를 삭제했습니다.");
+    location.href = "index.html#characters";
+  } catch (e) {
+    alert("삭제 중 오류: " + e.message);
+  }
+});
+
+
 (async function init(){
   await checkOwner();
   await loadAll();
