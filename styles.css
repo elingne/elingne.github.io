@@ -1469,3 +1469,72 @@ button:disabled {
 
 /* v18 square profile cropper */
 .crop-dialog{border:0;padding:0;background:transparent;max-width:min(92vw,560px);width:100%}.crop-dialog::backdrop{background:rgba(25,30,45,.5)}.crop-shell{background:var(--panel,#fff);border-radius:24px;padding:22px}.crop-stage{position:relative;width:min(100%,430px);aspect-ratio:1;margin:16px auto;overflow:hidden;border-radius:18px;background:#eef1f7;touch-action:none;cursor:grab}.crop-stage:active{cursor:grabbing}.crop-stage img{position:absolute;left:50%;top:50%;max-width:none;max-height:none;user-select:none;pointer-events:none;transform-origin:center center;will-change:transform}.crop-zoom-label{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px}.crop-zoom-label input{display:block;width:100%;min-width:0;margin:0}.crop-zoom-hint{margin:8px 0 0;color:var(--muted,#8d8d99);font-size:.84rem;line-height:1.45}.profile-crop-preview{width:88px;height:88px;object-fit:cover;border-radius:14px;margin-top:8px;border:1px solid rgba(0,0,0,.08)}
+
+/* v19 — scrollable dialogs/popups on desktop + mobile */
+.editor-dialog,
+.post-view-dialog,
+.pair-post-view-dialog,
+.crop-dialog {
+  max-height: calc(100dvh - 32px);
+  margin-block: 16px;
+}
+
+.editor-dialog,
+.post-view-dialog,
+.pair-post-view-dialog {
+  overflow: hidden;
+}
+
+.editor-dialog > .editor-shell,
+.post-view-dialog > .post-view-shell,
+.pair-post-view-dialog > .post-view-shell,
+.crop-dialog > .crop-shell {
+  box-sizing: border-box;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* pair post popup follows the same viewer layout as character posts */
+.pair-post-view-dialog {
+  width: min(920px, 94vw);
+  border: 0;
+  border-radius: 26px;
+  padding: 0;
+  background: #fff;
+  box-shadow: 0 28px 90px rgba(48,45,65,.22);
+}
+
+.pair-post-view-dialog::backdrop {
+  background: rgba(68,63,82,.34);
+  backdrop-filter: blur(4px);
+}
+
+/* Keep popup controls reachable while scrolling long forms. */
+.editor-dialog .editor-top,
+.post-view-dialog .post-view-top,
+.pair-post-view-dialog .post-view-top,
+.crop-dialog .crop-head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--paper, #fff);
+}
+
+@media (max-width: 640px) {
+  .editor-dialog,
+  .post-view-dialog,
+  .pair-post-view-dialog,
+  .crop-dialog {
+    max-height: calc(100dvh - 16px);
+    margin-block: 8px;
+  }
+
+  .editor-dialog > .editor-shell,
+  .post-view-dialog > .post-view-shell,
+  .pair-post-view-dialog > .post-view-shell,
+  .crop-dialog > .crop-shell {
+    max-height: calc(100dvh - 16px);
+  }
+}
