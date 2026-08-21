@@ -1331,3 +1331,52 @@ footer {
 @media (max-width: 1180px) {
   .spa-body .bgm-panel { position:relative; top:auto; left:auto; width:min(1100px,88vw); margin:26px auto 0; }
 }
+
+
+/* v12 draggable ordering */
+.draggable-image-row,
+.draggable-bgm-row {
+  position: relative;
+  transition: opacity .15s ease, transform .15s ease, border-color .15s ease;
+}
+
+.draggable-image-row.dragging,
+.draggable-bgm-row.dragging {
+  opacity: .45;
+  transform: scale(.99);
+}
+
+.drag-handle {
+  flex: 0 0 auto;
+  width: 34px;
+  min-width: 34px;
+  padding: 8px 4px;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+  border-radius: 10px;
+  line-height: 1;
+  letter-spacing: -3px;
+}
+
+.drag-handle:active { cursor: grabbing; }
+
+.bgm-admin-row.draggable-bgm-row {
+  grid-template-columns: 34px auto minmax(0, 1fr) auto;
+}
+
+.bgm-drag-handle { align-self: center; }
+
+button:disabled {
+  cursor: wait;
+  opacity: .6;
+}
+
+@media (max-width: 700px) {
+  .bgm-admin-row.draggable-bgm-row {
+    grid-template-columns: 34px auto minmax(0, 1fr);
+  }
+  .bgm-admin-row .bgm-admin-actions {
+    grid-column: 1 / -1;
+  }
+}

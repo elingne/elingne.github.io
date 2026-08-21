@@ -1,6 +1,8 @@
 const loginBox = document.getElementById("login-box");
 const loggedBox = document.getElementById("logged-box");
 let bgmAdminTracks = [];
+let bgmAddSaving = false;
+let bgmDragSaving = false;
 
 function escAdmin(value = "") {
   return String(value).replace(/[&<>"']/g, m => ({
@@ -69,7 +71,8 @@ function renderAdminBgm() {
   }
 
   list.innerHTML = bgmAdminTracks.map((track, index) => `
-    <div class="bgm-admin-row">
+    <div class="bgm-admin-row draggable-bgm-row" draggable="true" data-track-id="${track.id}" data-index="${index}">
+      <button type="button" class="drag-handle bgm-drag-handle" aria-label="BGM 순서 변경" title="드래그해서 순서 변경">⋮⋮</button>
       <span class="bgm-admin-order">${String(index + 1).padStart(2, "0")}</span>
       <div class="bgm-admin-copy">
         <strong class="bgm-admin-title">${escAdmin(track.title || `BGM ${index + 1}`)}</strong>
@@ -90,6 +93,51 @@ function renderAdminBgm() {
       if (action === "delete") return deleteBgm(index);
       if (action === "up") return moveBgm(index, index - 1);
       if (action === "down") return moveBgm(index, index + 1);
+    });
+  });
+
+  enableBgmDrag(list);
+}
+
+function enableBgmDrag(list) {
+  let dragged = null;
+  list.querySelectorAll('.draggable-bgm-row').forEach(row => {
+    row.addEventListener('dragstart', e => {
+      if (bgmDragSaving) { e.preventDefault(); return; }
+      dragged = row;
+      row.classList.add('dragging');
+      if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+    });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (!dragged || dragged === row) return;
+      const rect = row.getBoundingClientRect();
+      const after = e.clientY > rect.top + rect.height / 2;
+      list.insertBefore(dragged, after ? row.nextSibling : row);
+    });
+    row.addEventListener('dragend', async () => {
+      if (!dragged) return;
+      dragged.classList.remove('dragging');
+      dragged = null;
+      const ids = [...list.querySelectorAll('.draggable-bgm-row')].map(row => row.dataset.trackId);
+      const next = ids.map(id => bgmAdminTracks.find(track => String(track.id) === String(id))).filter(Boolean);
+      if (next.length !== bgmAdminTracks.length) return;
+      const changed = next.some((track, i) => String(track.id) !== String(bgmAdminTracks[i]?.id));
+      if (!changed) return;
+      const msg = document.getElementById('bgm-admin-msg');
+      try {
+        bgmDragSaving = true;
+        msg.textContent = '순서 저장 중...';
+        await normalizeSortOrder(next);
+        bgmAdminTracks = next;
+        msg.textContent = '드래그한 순서로 저장했어요.';
+        renderAdminBgm();
+      } catch (e) {
+        msg.textContent = e.message;
+        await loadAdminBgm();
+      } finally {
+        bgmDragSaving = false;
+      }
     });
   });
 }
@@ -147,6 +195,10 @@ document.getElementById("logout-btn").addEventListener("click", async () => {
 });
 
 document.getElementById("bgm-add-btn")?.addEventListener("click", async () => {
+  if (bgmAddSaving) return;
+  bgmAddSaving = true;
+  const addButton = document.getElementById("bgm-add-btn");
+  addButton.disabled = true;
   const urlInput = document.getElementById("bgm-url");
   const titleInput = document.getElementById("bgm-title");
   const msg = document.getElementById("bgm-admin-msg");
@@ -155,6 +207,8 @@ document.getElementById("bgm-add-btn")?.addEventListener("click", async () => {
 
   if (!videoId) {
     msg.textContent = "올바른 YouTube 영상 링크를 입력해주세요.";
+    bgmAddSaving = false;
+    addButton.disabled = false;
     return;
   }
 
@@ -178,6 +232,9 @@ document.getElementById("bgm-add-btn")?.addEventListener("click", async () => {
     await loadAdminBgm();
   } catch (e) {
     msg.textContent = e.message;
+  } finally {
+    bgmAddSaving = false;
+    addButton.disabled = false;
   }
 });
 

@@ -8,6 +8,7 @@ let galleryPosts = [];
 let postImages = [];
 
 let selectedNewFiles = [];
+let editorSaving = false;
 
 const editor = document.getElementById("editor-dialog");
 const charEditor = document.getElementById("character-dialog");
@@ -331,7 +332,8 @@ function renderExistingImages(kind, postId) {
 
   document.getElementById("existing-images-wrap").classList.remove("hidden");
   document.getElementById("existing-image-list").innerHTML = imgs.map(img => `
-    <div class="image-edit-row image-card-editor" data-image-id="${img.id}">
+    <div class="image-edit-row image-card-editor draggable-image-row" draggable="true" data-image-id="${img.id}">
+      <button type="button" class="drag-handle" aria-label="이미지 순서 변경" title="드래그해서 순서 변경">⋮⋮</button>
       <div class="image-preview-wrap">
         <img src="${img.image_url}" alt="">
         <button type="button" class="image-x delete-existing-now" data-id="${img.id}" aria-label="이미지 삭제">×</button>
@@ -359,6 +361,8 @@ function renderExistingImages(kind, postId) {
       renderProfile(); renderLogs(); renderGallery();
     };
   });
+
+  enableImageDrag(document.getElementById("existing-image-list"));
 }
 
 document.getElementById("add-image-btn").addEventListener("click", () => {
@@ -384,7 +388,8 @@ document.getElementById("edit-image-picker").addEventListener("change", e => {
 function renderPendingImages() {
   const box = document.getElementById("new-image-caption-list");
   box.innerHTML = selectedNewFiles.map((item, index) => `
-    <div class="image-edit-row image-card-editor pending-image-row" data-index="${index}">
+    <div class="image-edit-row image-card-editor pending-image-row draggable-image-row" draggable="true" data-index="${index}">
+      <button type="button" class="drag-handle" aria-label="이미지 순서 변경" title="드래그해서 순서 변경">⋮⋮</button>
       <div class="image-preview-wrap">
         <img src="${item.preview}" alt="">
         <button type="button" class="image-x remove-pending-image" data-index="${index}" aria-label="선택 이미지 제거">×</button>
@@ -409,6 +414,50 @@ function renderPendingImages() {
       renderPendingImages();
     };
   });
+
+  enableImageDrag(box, syncPendingImageOrderFromDom);
+}
+
+function enableImageDrag(container, onReorder) {
+  if (!container) return;
+  let dragged = null;
+  container.querySelectorAll('.draggable-image-row').forEach(row => {
+    row.addEventListener('dragstart', e => {
+      dragged = row;
+      row.classList.add('dragging');
+      if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+    });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      dragged = null;
+      onReorder?.();
+    });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      if (!dragged || dragged === row) return;
+      const rect = row.getBoundingClientRect();
+      const after = e.clientY > rect.top + rect.height / 2;
+      container.insertBefore(dragged, after ? row.nextSibling : row);
+    });
+  });
+}
+
+function syncPendingImageOrderFromDom() {
+  const rows = [...document.querySelectorAll('#new-image-caption-list .pending-image-row')];
+  if (!rows.length) return;
+  const next = rows.map(row => selectedNewFiles[Number(row.dataset.index)]).filter(Boolean);
+  if (next.length === selectedNewFiles.length) {
+    selectedNewFiles = next;
+    renderPendingImages();
+  }
+}
+
+async function saveExistingImageOrder() {
+  const rows = [...document.querySelectorAll('#existing-image-list [data-image-id]')];
+  for (let i = 0; i < rows.length; i++) {
+    const { error } = await db.from('post_images').update({ sort_order: i }).eq('id', rows[i].dataset.imageId);
+    if (error) throw error;
+  }
 }
 
 async function saveExistingImageEdits() {
@@ -419,7 +468,7 @@ async function saveExistingImageEdits() {
   }
 }
 
-async function saveNewImages(kind, postId) {
+async function saveNewImages(kind, postId, sortOffset = 0) {
   for (let i = 0; i < selectedNewFiles.length; i++) {
     const item = selectedNewFiles[i];
     const file = item.file;
@@ -432,7 +481,7 @@ async function saveNewImages(kind, postId) {
       post_id: postId,
       image_url: uploaded.url,
       caption,
-      sort_order: i
+      sort_order: sortOffset + i
     });
 
     if (error) {
@@ -443,6 +492,10 @@ async function saveNewImages(kind, postId) {
 }
 
 document.getElementById("save-editor-btn").addEventListener("click", async () => {
+  if (editorSaving) return;
+  editorSaving = true;
+  const saveButton = document.getElementById("save-editor-btn");
+  saveButton.disabled = true;
   const kind = document.getElementById("edit-kind").value;
   const id = document.getElementById("edit-id").value;
   const msg = document.getElementById("editor-msg");
@@ -500,14 +553,19 @@ document.getElementById("save-editor-btn").addEventListener("click", async () =>
 
       if (error) throw error;
       await saveExistingImageEdits();
+      await saveExistingImageOrder();
     }
 
-    await saveNewImages(kind, postId);
+    const existingCount = id ? document.querySelectorAll('#existing-image-list [data-image-id]').length : 0;
+    await saveNewImages(kind, postId, existingCount);
 
     editor.close();
     await loadAll();
   } catch (e) {
     msg.textContent = e.message;
+  } finally {
+    editorSaving = false;
+    saveButton.disabled = false;
   }
 });
 
