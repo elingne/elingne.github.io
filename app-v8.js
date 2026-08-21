@@ -39,7 +39,7 @@ async function loadMain() {
 
 async function loadCharacters() {
   const grid = document.getElementById("character-grid");
-  const { data, error } = await db.from("characters").select("*").order("created_at");
+  const { data, error } = await db.from("characters").select("*").order("name", { ascending:true });
   if (error) {
     grid.innerHTML = `<p class="muted">${esc(error.message)}</p>`;
     return;
@@ -57,7 +57,7 @@ async function loadCharacters() {
 
 async function loadPairs() {
   const grid = document.getElementById("pair-grid");
-  const { data: pairs, error } = await db.from("pairs").select("*").order("created_at");
+  const { data: pairs, error } = await db.from("pairs").select("*").order("name", { ascending:true });
   if (error) {
     grid.innerHTML = `<p class="muted">${esc(error.message)}</p>`;
     return;
