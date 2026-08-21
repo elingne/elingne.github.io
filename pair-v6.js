@@ -1,6 +1,6 @@
 const params = new URLSearchParams(location.search);
-let pairId = params.get("id");
-const newMode = params.get("new") === "1";
+let pairId = window.__SPA_ROUTE__?.pairId || params.get("id");
+const newMode = window.__SPA_ROUTE__?.pairNew === true || params.get("new") === "1";
 
 let isOwner = false;
 let pair = null;
@@ -42,7 +42,7 @@ async function checkOwner() {
     link.onclick = async e => {
       e.preventDefault();
       await db.auth.signOut();
-      location.href = "index.html#pairs";
+      window.spaNavigate("/pairs");
     };
   }
 }
@@ -66,7 +66,7 @@ function storagePathFromUrl(url) {
 async function createPairIfNeeded() {
   if (!newMode) return;
   if (!isOwner) {
-    location.href = "admin.html";
+    window.spaNavigate("/admin");
     return;
   }
   const { data, error } = await db.from("pairs").insert({ name:"새 페어", summary:"" }).select().single();
@@ -77,7 +77,7 @@ async function createPairIfNeeded() {
     { pair_id:data.id, name:"인물 2", profile_text:"", sort_order:1 }
   ]);
 
-  location.replace(`pair.html?id=${data.id}`);
+  window.spaNavigate(`/pair/${data.id}`);
 }
 
 async function loadPair() {
@@ -348,7 +348,7 @@ document.getElementById("delete-pair-btn").addEventListener("click", async () =>
   if (!confirm("이 페어를 삭제할까요?")) return;
   const { error } = await db.from("pairs").delete().eq("id", pairId);
   if (error) return alert(error.message);
-  location.href = "index.html#pairs";
+  window.spaNavigate("/pairs");
 });
 
 document.querySelectorAll("[data-open-post-editor]").forEach(btn => {

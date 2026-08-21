@@ -1,4 +1,4 @@
-const characterId = new URLSearchParams(location.search).get("id");
+const characterId = window.__SPA_ROUTE__?.characterId || new URLSearchParams(location.search).get("id");
 
 let isOwner = false;
 let character = null;
@@ -41,7 +41,7 @@ async function checkOwner() {
     link.onclick = async e => {
       e.preventDefault();
       await db.auth.signOut();
-      location.reload();
+      window.spaNavigate("/admin");
     };
   }
 }
@@ -618,7 +618,7 @@ document.getElementById("delete-character-btn").addEventListener("click", async 
     if (error) throw error;
 
     alert("캐릭터를 삭제했습니다.");
-    location.href = "index.html#characters";
+    window.spaNavigate("/characters");
   } catch (e) {
     alert("삭제 중 오류: " + e.message);
   }

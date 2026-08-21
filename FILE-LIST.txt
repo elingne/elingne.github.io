@@ -1,0 +1,27 @@
+SPA v11 active files
+
+index.html
+spa-v11.js
+bgm-player-v8.js
+app-v8.js
+character-v6.js
+pair-v6.js
+admin-v3.js
+styles.css
+supabase-config.js
+
+Compatibility redirect files
+character.html
+pair.html
+admin.html
+
+Database setup/migrations
+migration-final.sql
+migration-v5.sql
+migration-v6.sql
+migration-v7-bgm.sql
+
+Documentation
+REPRODUCTION-GUIDE.md
+REPRODUCTION-GUIDE.txt
+FILE-LIST.txt

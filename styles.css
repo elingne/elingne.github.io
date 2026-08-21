@@ -1319,3 +1319,15 @@ footer {
   .bgm-admin-row { grid-template-columns: 26px minmax(0,1fr); }
   .bgm-admin-actions { grid-column: 2; }
 }
+
+
+/* v11 SPA shell */
+#spa-view { min-height: 70vh; }
+#spa-view[aria-busy="true"] { opacity: .985; }
+.spa-error { width:min(1100px,88vw); margin:24px auto; padding:12px 16px; border:1px solid var(--line); background:var(--paper); }
+@media (min-width: 1181px) {
+  .spa-body .bgm-panel { position:fixed; top:16px; left:16px; margin:0; }
+}
+@media (max-width: 1180px) {
+  .spa-body .bgm-panel { position:relative; top:auto; left:auto; width:min(1100px,88vw); margin:26px auto 0; }
+}
