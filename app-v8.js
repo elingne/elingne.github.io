@@ -1,3 +1,7 @@
+// SPA v14 guard: prevent duplicate module initialization on the same rendered view.
+const __elingneViewRoot = document.querySelector(".hero-profile");
+if (__elingneViewRoot && __elingneViewRoot.dataset.__elingne_main_initialized !== "1") {
+  __elingneViewRoot.dataset.__elingne_main_initialized = "1";
 let isOwner = false;
 let mainSettings = null;
 
@@ -130,3 +134,5 @@ document.getElementById("save-main-btn").addEventListener("click", async () => {
   await initOwner();
   await Promise.all([loadMain(), loadCharacters(), loadPairs()]);
 })();
+
+}

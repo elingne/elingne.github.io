@@ -1,3 +1,7 @@
+// SPA v14 guard: prevent duplicate module initialization on the same rendered view.
+const __elingneViewRoot = document.querySelector(".admin-wrap");
+if (__elingneViewRoot && __elingneViewRoot.dataset.__elingne_admin_initialized !== "1") {
+  __elingneViewRoot.dataset.__elingne_admin_initialized = "1";
 const loginBox = document.getElementById("login-box");
 const loggedBox = document.getElementById("logged-box");
 let bgmAdminTracks = [];
@@ -221,3 +225,5 @@ document.getElementById("bgm-add-btn")?.addEventListener("click", async () => {
 
 db.auth.onAuthStateChange(refresh);
 refresh();
+
+}

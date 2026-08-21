@@ -1,3 +1,7 @@
+// SPA v14 guard: prevent duplicate module initialization on the same rendered view.
+const __elingneViewRoot = document.querySelector(".character-page");
+if (__elingneViewRoot && __elingneViewRoot.dataset.__elingne_character_initialized !== "1") {
+  __elingneViewRoot.dataset.__elingne_character_initialized = "1";
 const characterId = window.__SPA_ROUTE__?.characterId || new URLSearchParams(location.search).get("id");
 
 let isOwner = false;
@@ -687,3 +691,5 @@ document.getElementById("delete-character-btn").addEventListener("click", async 
   await checkOwner();
   await loadAll();
 })();
+
+}

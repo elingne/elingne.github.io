@@ -1,3 +1,7 @@
+// SPA v14 guard: prevent duplicate module initialization on the same rendered view.
+const __elingneViewRoot = document.querySelector(".character-page");
+if (__elingneViewRoot && __elingneViewRoot.dataset.__elingne_pair_initialized !== "1") {
+  __elingneViewRoot.dataset.__elingne_pair_initialized = "1";
 const params = new URLSearchParams(location.search);
 let pairId = window.__SPA_ROUTE__?.pairId || params.get("id");
 const newMode = window.__SPA_ROUTE__?.pairNew === true || params.get("new") === "1";
@@ -572,3 +576,5 @@ document.getElementById("delete-post-btn").addEventListener("click", async () =>
   await createPairIfNeeded();
   if (pairId) await loadPair();
 })();
+
+}
