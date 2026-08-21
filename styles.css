@@ -1105,33 +1105,27 @@ footer {
   }
 }
 
-/* v7: YouTube BGM playlist */
+/* v9: YouTube BGM playlist — desktop player fixed to the browser top-left */
 .main-with-bgm {
-  width: min(1420px, 94vw);
+  width: min(1100px, 92vw);
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 260px minmax(0, 1100px);
-  gap: 42px;
-  align-items: start;
 }
 .main-with-bgm > main {
   width: 100%;
   min-width: 0;
 }
 .bgm-panel {
-  position: sticky;
-  top: 92px;
-  margin-top: 42px;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 30;
+  width: 260px;
+  margin: 0;
   padding: 18px;
   border: 1px solid var(--line);
   border-radius: 22px;
-  background: rgba(255,255,255,.9);
+  background: rgba(255,255,255,.92);
   box-shadow: 0 12px 32px rgba(110, 116, 145, .08);
-}
-@media (min-width: 1051px) {
-  .bgm-panel {
-    transform: translateX(clamp(-34px, -2.4vw, -18px));
-  }
 }
 .bgm-heading {
   display: flex;
@@ -1299,20 +1293,19 @@ footer {
   font-size: .75rem;
 }
 
-@media (max-width: 1050px) {
+@media (max-width: 1180px) {
   .main-with-bgm {
-    grid-template-columns: 220px minmax(0,1fr);
-    gap: 26px;
+    width: min(92vw, 1100px);
+  }
+  .bgm-panel {
+    position: static;
+    width: auto;
+    margin: 26px 0 0;
   }
 }
 @media (max-width: 820px) {
   .main-with-bgm {
     width: min(92vw, 1100px);
-    grid-template-columns: 1fr;
-  }
-  .bgm-panel {
-    position: static;
-    margin: 26px 0 0;
   }
   .youtube-player,
   .youtube-player iframe { min-height: 220px; height: 220px; }
