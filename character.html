@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Character | elingne archive</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="index.html">elingne</a>
+    <nav>
+      <a href="index.html">MAIN</a>
+      <a class="active" href="index.html#characters">CHARACTER</a>
+      <a class="admin-link" href="admin.html">ADMIN</a>
+    </nav>
+  </header>
+
+  <main class="character-page">
+    <section id="character-head" class="character-head">
+      <p class="muted">캐릭터를 불러오는 중...</p>
+    </section>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="profile">PROFILE</button>
+      <button class="tab" data-tab="log">LOG</button>
+      <button class="tab" data-tab="gallery">GALLERY</button>
+    </div>
+
+    <section id="profile" class="tab-panel active"></section>
+    <section id="log" class="tab-panel"></section>
+    <section id="gallery" class="tab-panel">
+      <div id="gallery-grid" class="gallery-grid"></div>
+    </section>
+  </main>
+
+  <footer>© elingne</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="character.js"></script>
+</body>
+</html>

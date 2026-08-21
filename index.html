@@ -1,13 +1,43 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>elingne's home</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>elingne archive</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
-  <h1>내 개인홈!</h1>
-  <p>GitHub Pages 연결 성공 🎉</p>
+  <header class="site-header">
+    <a class="logo" href="index.html">elingne</a>
+    <nav>
+      <a class="active" href="index.html">MAIN</a>
+      <a href="#characters">CHARACTER</a>
+      <a class="admin-link" href="admin.html">ADMIN</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">ORIGINAL CHARACTER ARCHIVE</p>
+      <h1>MAIN</h1>
+      <p id="main-text">자캐와 커뮤니티 활동을 정리하는 개인 홈페이지입니다.</p>
+    </section>
+
+    <section id="characters" class="section">
+      <div class="section-heading">
+        <p class="eyebrow">ARCHIVE</p>
+        <h2>CHARACTER</h2>
+      </div>
+      <div id="character-grid" class="character-grid">
+        <p class="muted">캐릭터를 불러오는 중...</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>© elingne</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

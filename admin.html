@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | elingne archive</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="index.html">elingne</a>
+    <nav>
+      <a href="index.html">MAIN</a>
+      <a href="index.html#characters">CHARACTER</a>
+      <a class="active" href="admin.html">ADMIN</a>
+    </nav>
+  </header>
+
+  <main class="admin-wrap">
+    <section id="login-box" class="admin-card">
+      <p class="eyebrow">OWNER ONLY</p>
+      <h1>ADMIN LOGIN</h1>
+      <label>이메일
+        <input id="email" type="email" autocomplete="email" />
+      </label>
+      <label>비밀번호
+        <input id="password" type="password" autocomplete="current-password" />
+      </label>
+      <button id="login-btn">로그인</button>
+      <p id="login-msg" class="muted"></p>
+    </section>
+
+    <section id="admin-panel" class="hidden">
+      <div class="admin-toolbar">
+        <h1>관리자 페이지</h1>
+        <button id="logout-btn" class="ghost">로그아웃</button>
+      </div>
+
+      <section class="admin-card">
+        <h2>캐릭터 추가 / 수정</h2>
+        <input id="char-id" type="hidden" />
+        <div class="form-grid">
+          <label>이름
+            <input id="char-name" type="text" />
+          </label>
+          <label>한 줄 설명
+            <input id="char-summary" type="text" />
+          </label>
+          <label>프로필 이미지
+            <input id="char-image" type="file" accept="image/*" />
+          </label>
+          <label class="wide">프로필
+            <textarea id="char-profile" rows="10" placeholder="이름 / 나이 / 성격 / 설정 등을 자유롭게 작성"></textarea>
+          </label>
+        </div>
+        <div class="button-row">
+          <button id="save-char-btn">캐릭터 저장</button>
+          <button id="reset-char-btn" class="ghost">입력 초기화</button>
+        </div>
+        <div id="admin-character-list" class="admin-list"></div>
+      </section>
+
+      <section class="admin-card">
+        <h2>로그 작성</h2>
+        <label>캐릭터
+          <select id="log-character"></select>
+        </label>
+        <label>제목
+          <input id="log-title" type="text" />
+        </label>
+        <label>내용
+          <textarea id="log-body" rows="8"></textarea>
+        </label>
+        <button id="save-log-btn">로그 업로드</button>
+      </section>
+
+      <section class="admin-card">
+        <h2>갤러리 업로드</h2>
+        <label>캐릭터
+          <select id="gallery-character"></select>
+        </label>
+        <label>이미지
+          <input id="gallery-file" type="file" accept="image/*" />
+        </label>
+        <label>캡션
+          <input id="gallery-caption" type="text" />
+        </label>
+        <button id="save-gallery-btn">사진 업로드</button>
+      </section>
+
+      <p id="admin-msg" class="status"></p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
