@@ -3,6 +3,7 @@ const __elingneViewRoot = document.querySelector(".hero-profile");
 if (__elingneViewRoot && __elingneViewRoot.dataset.__elingne_main_initialized !== "1") {
   __elingneViewRoot.dataset.__elingne_main_initialized = "1";
 let isOwner = false;
+let croppedMainProfileFile = null;
 let mainSettings = null;
 
 function esc(value = "") {
@@ -141,8 +142,19 @@ document.getElementById("edit-main-btn").addEventListener("click", () => {
   document.getElementById("main-edit-title").value = mainSettings?.title || "";
   document.getElementById("main-edit-text").value = mainSettings?.intro_text || "";
   document.getElementById("main-edit-image").value = "";
+  croppedMainProfileFile = null;
   document.getElementById("main-edit-msg").textContent = "";
   document.getElementById("main-dialog").showModal();
+});
+
+document.getElementById("main-edit-image").addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    const cropped = await window.cropSquareImage(file);
+    if (cropped) { croppedMainProfileFile = cropped; document.getElementById("main-edit-msg").textContent = "정사각형 크롭이 적용됐어요."; }
+    else { e.target.value = ""; croppedMainProfileFile = null; }
+  } catch (err) { document.getElementById("main-edit-msg").textContent = err.message; }
 });
 
 document.getElementById("save-main-btn").addEventListener("click", async () => {
@@ -154,7 +166,7 @@ document.getElementById("save-main-btn").addEventListener("click", async () => {
       title: document.getElementById("main-edit-title").value.trim() || "MAIN",
       intro_text: document.getElementById("main-edit-text").value
     };
-    const file = document.getElementById("main-edit-image").files[0];
+    const file = croppedMainProfileFile || document.getElementById("main-edit-image").files[0];
     if (file) payload.profile_image_url = await uploadImage(file, "site");
 
     const { error } = await db.from("site_settings").upsert(payload);

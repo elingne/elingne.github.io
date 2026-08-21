@@ -292,6 +292,19 @@ function drawProfileEditor() {
   });
 }
 
+document.getElementById("profile-editor-list").addEventListener("change", async (e) => {
+  const input = e.target.closest(".profile-image");
+  if (!input) return;
+  const index = Number(input.dataset.index);
+  const file = input.files?.[0];
+  if (!file || !editProfileRows[index]) return;
+  try {
+    const cropped = await window.cropSquareImage(file);
+    if (cropped) { editProfileRows[index].file = cropped; document.getElementById("profile-edit-msg").textContent = `${editProfileRows[index].name || "프로필"} 사진 크롭이 적용됐어요.`; }
+    else { input.value = ""; editProfileRows[index].file = null; }
+  } catch (err) { document.getElementById("profile-edit-msg").textContent = err.message; }
+});
+
 document.getElementById("edit-pair-profile-btn").addEventListener("click", () => {
   renderProfileEditor();
   document.getElementById("relationship-edit").value = pair?.relationship_text || "";
@@ -321,7 +334,7 @@ document.getElementById("save-profile-btn").addEventListener("click", async () =
     for (let i=0; i<editProfileRows.length; i++) {
       const base = editProfileRows[i];
       let image_url = base.image_url || null;
-      const file = files[i]?.files?.[0];
+      const file = base.file || files[i]?.files?.[0];
       if (file) {
         const up = await uploadImage(file, `pair/${pairId}/profiles`);
         image_url = up.url;

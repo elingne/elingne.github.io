@@ -13,6 +13,7 @@ let postImages = [];
 
 let selectedNewFiles = [];
 let editorSaving = false;
+let croppedCharacterFile = null;
 
 const editor = document.getElementById("editor-dialog");
 const charEditor = document.getElementById("character-dialog");
@@ -611,8 +612,19 @@ document.getElementById("edit-character-btn").addEventListener("click", () => {
   document.getElementById("char-name").value = character?.name || "";
   document.getElementById("char-summary").value = character?.summary || "";
   document.getElementById("char-image").value = "";
+  croppedCharacterFile = null;
   document.getElementById("char-msg").textContent = "";
   charEditor.showModal();
+});
+
+document.getElementById("char-image").addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    const cropped = await window.cropSquareImage(file);
+    if (cropped) { croppedCharacterFile = cropped; document.getElementById("char-msg").textContent = "정사각형 크롭이 적용됐어요."; }
+    else { e.target.value = ""; croppedCharacterFile = null; }
+  } catch (err) { document.getElementById("char-msg").textContent = err.message; }
 });
 
 document.getElementById("save-character-btn").addEventListener("click", async () => {
@@ -626,7 +638,7 @@ document.getElementById("save-character-btn").addEventListener("click", async ()
       summary: document.getElementById("char-summary").value.trim()
     };
 
-    const file = document.getElementById("char-image").files[0];
+    const file = croppedCharacterFile || document.getElementById("char-image").files[0];
     if (file) {
       const uploaded = await uploadImage(file, "characters");
       payload.image_url = uploaded.url;
