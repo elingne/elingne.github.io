@@ -12,7 +12,7 @@
     <nav>
       <a href="index.html">MAIN</a>
       <a class="active" href="index.html#characters">CHARACTER</a>
-      <a class="admin-link" href="admin.html">ADMIN</a>
+      <a id="auth-link" class="admin-link" href="admin.html">ADMIN</a>
     </nav>
   </header>
 
@@ -21,23 +21,109 @@
       <p class="muted">캐릭터를 불러오는 중...</p>
     </section>
 
+    <div id="owner-character-tools" class="owner-tools hidden">
+      <button id="edit-character-btn" class="ghost">캐릭터 기본정보 수정</button>
+    </div>
+
     <div class="tabs">
       <button class="tab active" data-tab="profile">PROFILE</button>
       <button class="tab" data-tab="log">LOG</button>
       <button class="tab" data-tab="gallery">GALLERY</button>
     </div>
 
-    <section id="profile" class="tab-panel active"></section>
-    <section id="log" class="tab-panel"></section>
+    <section id="profile" class="tab-panel active">
+      <div class="panel-head">
+        <h2>PROFILE</h2>
+        <button class="owner-only hidden" data-open-editor="profile">+ 프로필 블록</button>
+      </div>
+      <div id="profile-feed" class="feed"></div>
+    </section>
+
+    <section id="log" class="tab-panel">
+      <div class="panel-head">
+        <h2>LOG</h2>
+        <button class="owner-only hidden" data-open-editor="log">+ 로그 게시물</button>
+      </div>
+      <div id="log-feed" class="feed"></div>
+    </section>
+
     <section id="gallery" class="tab-panel">
-      <div id="gallery-grid" class="gallery-grid"></div>
+      <div class="panel-head">
+        <h2>GALLERY</h2>
+        <button class="owner-only hidden" data-open-editor="gallery">+ 갤러리 게시물</button>
+      </div>
+      <div id="gallery-feed" class="gallery-feed"></div>
     </section>
   </main>
 
-  <footer>© elingne</footer>
+  <dialog id="editor-dialog" class="editor-dialog">
+    <form method="dialog" class="editor-shell">
+      <div class="editor-top">
+        <h2 id="editor-title">편집</h2>
+        <button value="cancel" class="ghost">닫기</button>
+      </div>
 
+      <input id="edit-kind" type="hidden">
+      <input id="edit-id" type="hidden">
+
+      <label id="profile-type-wrap" class="hidden">프로필 블록 종류
+        <select id="profile-type">
+          <option value="text">텍스트</option>
+          <option value="image">이미지</option>
+        </select>
+      </label>
+
+      <label id="title-wrap" class="hidden">제목
+        <input id="edit-title" type="text">
+      </label>
+
+      <label id="body-wrap">내용
+        <textarea id="edit-body" rows="10"></textarea>
+      </label>
+
+      <label id="image-wrap" class="hidden">이미지
+        <input id="edit-image" type="file" accept="image/*">
+      </label>
+
+      <label id="caption-wrap" class="hidden">이미지 캡션
+        <input id="edit-caption" type="text">
+      </label>
+
+      <label id="sort-wrap" class="hidden">프로필 표시 순서
+        <input id="edit-sort" type="number" value="0">
+      </label>
+
+      <div class="button-row">
+        <button id="save-editor-btn" value="cancel" type="button">저장</button>
+        <button id="delete-editor-btn" value="cancel" type="button" class="danger hidden">삭제</button>
+      </div>
+      <p id="editor-msg" class="status"></p>
+    </form>
+  </dialog>
+
+  <dialog id="character-dialog" class="editor-dialog">
+    <form method="dialog" class="editor-shell">
+      <div class="editor-top">
+        <h2>캐릭터 기본정보 수정</h2>
+        <button value="cancel" class="ghost">닫기</button>
+      </div>
+      <label>이름
+        <input id="char-name" type="text">
+      </label>
+      <label>한 줄 설명
+        <input id="char-summary" type="text">
+      </label>
+      <label>대표 이미지 교체
+        <input id="char-image" type="file" accept="image/*">
+      </label>
+      <button id="save-character-btn" value="cancel" type="button">저장</button>
+      <p id="char-msg" class="status"></p>
+    </form>
+  </dialog>
+
+  <footer>© elingne</footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
-  <script src="character.js"></script>
+  <script src="character-v2.js"></script>
 </body>
 </html>

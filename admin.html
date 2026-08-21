@@ -30,70 +30,19 @@
       <p id="login-msg" class="muted"></p>
     </section>
 
-    <section id="admin-panel" class="hidden">
-      <div class="admin-toolbar">
-        <h1>관리자 페이지</h1>
+    <section id="logged-box" class="admin-card hidden">
+      <p class="eyebrow">OWNER MODE</p>
+      <h1>로그인됨</h1>
+      <p>편집은 각 캐릭터 페이지에서 바로 할 수 있습니다.</p>
+      <div class="button-row">
+        <a class="button-link" href="index.html#characters">캐릭터 목록으로</a>
         <button id="logout-btn" class="ghost">로그아웃</button>
       </div>
-
-      <section class="admin-card">
-        <h2>캐릭터 추가 / 수정</h2>
-        <input id="char-id" type="hidden" />
-        <div class="form-grid">
-          <label>이름
-            <input id="char-name" type="text" />
-          </label>
-          <label>한 줄 설명
-            <input id="char-summary" type="text" />
-          </label>
-          <label>프로필 이미지
-            <input id="char-image" type="file" accept="image/*" />
-          </label>
-          <label class="wide">프로필
-            <textarea id="char-profile" rows="10" placeholder="이름 / 나이 / 성격 / 설정 등을 자유롭게 작성"></textarea>
-          </label>
-        </div>
-        <div class="button-row">
-          <button id="save-char-btn">캐릭터 저장</button>
-          <button id="reset-char-btn" class="ghost">입력 초기화</button>
-        </div>
-        <div id="admin-character-list" class="admin-list"></div>
-      </section>
-
-      <section class="admin-card">
-        <h2>로그 작성</h2>
-        <label>캐릭터
-          <select id="log-character"></select>
-        </label>
-        <label>제목
-          <input id="log-title" type="text" />
-        </label>
-        <label>내용
-          <textarea id="log-body" rows="8"></textarea>
-        </label>
-        <button id="save-log-btn">로그 업로드</button>
-      </section>
-
-      <section class="admin-card">
-        <h2>갤러리 업로드</h2>
-        <label>캐릭터
-          <select id="gallery-character"></select>
-        </label>
-        <label>이미지
-          <input id="gallery-file" type="file" accept="image/*" />
-        </label>
-        <label>캡션
-          <input id="gallery-caption" type="text" />
-        </label>
-        <button id="save-gallery-btn">사진 업로드</button>
-      </section>
-
-      <p id="admin-msg" class="status"></p>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
-  <script src="admin.js"></script>
+  <script src="admin-v2.js"></script>
 </body>
 </html>
