@@ -79,8 +79,6 @@ function renderAdminBgm() {
         <span class="bgm-admin-url">${escAdmin(track.youtube_url)}</span>
       </div>
       <div class="bgm-admin-actions">
-        <button type="button" class="ghost" data-action="up" data-index="${index}" ${index === 0 ? "disabled" : ""}>↑</button>
-        <button type="button" class="ghost" data-action="down" data-index="${index}" ${index === bgmAdminTracks.length - 1 ? "disabled" : ""}>↓</button>
         <button type="button" class="danger" data-action="delete" data-index="${index}">삭제</button>
       </div>
     </div>
@@ -91,8 +89,6 @@ function renderAdminBgm() {
       const index = Number(button.dataset.index);
       const action = button.dataset.action;
       if (action === "delete") return deleteBgm(index);
-      if (action === "up") return moveBgm(index, index - 1);
-      if (action === "down") return moveBgm(index, index + 1);
     });
   });
 
@@ -146,21 +142,6 @@ async function normalizeSortOrder(rows) {
   for (let i = 0; i < rows.length; i++) {
     const { error } = await db.from("bgm_tracks").update({ sort_order: i }).eq("id", rows[i].id);
     if (error) throw error;
-  }
-}
-
-async function moveBgm(from, to) {
-  if (to < 0 || to >= bgmAdminTracks.length) return;
-  const msg = document.getElementById("bgm-admin-msg");
-  try {
-    msg.textContent = "순서 변경 중...";
-    const next = [...bgmAdminTracks];
-    [next[from], next[to]] = [next[to], next[from]];
-    await normalizeSortOrder(next);
-    msg.textContent = "순서를 변경했어요.";
-    await loadAdminBgm();
-  } catch (e) {
-    msg.textContent = e.message;
   }
 }
 

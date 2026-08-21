@@ -1380,3 +1380,89 @@ button:disabled {
     grid-column: 1 / -1;
   }
 }
+
+
+/* =========================================================
+   v13 UI refinements
+   ========================================================= */
+
+/* Image ordering: compact handle at left; caption directly below its image. */
+.image-card-editor.draggable-image-row {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 180px);
+  grid-template-areas:
+    "handle preview"
+    ". caption";
+  justify-content: start;
+  align-items: start;
+  column-gap: 10px;
+  row-gap: 10px;
+}
+
+.image-card-editor.draggable-image-row > .drag-handle {
+  grid-area: handle;
+  width: 26px;
+  min-width: 26px;
+  height: 32px;
+  padding: 0;
+  align-self: center;
+  border-radius: 9px;
+  letter-spacing: -4px;
+  font-size: .8rem;
+}
+
+.image-card-editor.draggable-image-row > .image-preview-wrap {
+  grid-area: preview;
+  width: 180px;
+  max-width: 100%;
+}
+
+.image-card-editor.draggable-image-row > .image-edit-fields {
+  grid-area: caption;
+  width: 180px;
+  max-width: 100%;
+}
+
+.image-card-editor.draggable-image-row > .image-edit-fields input {
+  width: 100%;
+  margin: 0;
+}
+
+/* Post viewer: owner edit and close controls sit together. */
+.post-view-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.post-view-actions .post-view-owner-tools {
+  margin: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.post-view-actions .post-view-owner-tools.hidden {
+  display: none;
+}
+
+/* BGM ordering is drag-only; action area now contains delete only. */
+.bgm-admin-row.draggable-bgm-row {
+  grid-template-columns: 34px auto minmax(0, 1fr) auto;
+}
+
+@media (max-width: 700px) {
+  .image-card-editor.draggable-image-row {
+    grid-template-columns: 24px minmax(0, 1fr);
+  }
+  .image-card-editor.draggable-image-row > .drag-handle {
+    width: 24px;
+    min-width: 24px;
+    height: 30px;
+  }
+  .image-card-editor.draggable-image-row > .image-preview-wrap,
+  .image-card-editor.draggable-image-row > .image-edit-fields {
+    width: min(180px, 100%);
+  }
+}

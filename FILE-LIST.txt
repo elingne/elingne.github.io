@@ -14,6 +14,6 @@ migration-v6.sql
 migration-v7-bgm.sql
 pair-v6.js
 pair.html
-spa-v12.js
+spa-v13.js
 styles.css
 supabase-config.js
