@@ -133,6 +133,25 @@
     </form>
   </dialog>
 
+
+  <dialog id="pair-post-view-dialog" class="pair-post-view-dialog">
+    <div class="post-view-shell">
+      <div class="post-view-top">
+        <div>
+          <p id="post-view-kind" class="eyebrow"></p>
+          <h2 id="post-view-title"></h2>
+        </div>
+        <button id="close-pair-post-view" class="ghost" type="button">닫기</button>
+      </div>
+      <p id="post-view-date" class="post-date"></p>
+      <div id="post-view-body" class="post-body"></div>
+      <div id="post-view-images" class="post-view-images"></div>
+      <div id="post-view-owner-tools" class="post-view-owner-tools hidden">
+        <button id="pair-post-view-edit-btn" type="button">수정</button>
+      </div>
+    </div>
+  </dialog>
+
   <footer>© elingne</footer>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>

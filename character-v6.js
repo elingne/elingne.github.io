@@ -169,43 +169,106 @@ function renderProfile() {
 function renderLogs() {
   const feed = document.getElementById("log-feed");
 
+  feed.classList.add("post-card-grid");
   feed.innerHTML = logs.length
-    ? logs.map(p => `
-        <article class="feed-post">
-          ${postTools("log", p.id)}
-          <p class="post-date">${new Date(p.created_at).toLocaleDateString("ko-KR")}</p>
-          ${p.title ? `<h3>${esc(p.title)}</h3>` : ""}
-          ${p.body ? `<div class="post-body">${esc(p.body).replace(/\n/g,"<br>")}</div>` : ""}
-          ${renderImages("log", p.id)}
-        </article>
-      `).join("")
+    ? logs.map(p => renderPostCard("log", p)).join("")
     : `<p class="muted">등록된 로그가 없습니다.</p>`;
 
-  bindEditButtons();
+  bindPostCards();
 }
 
 function renderGallery() {
   const feed = document.getElementById("gallery-feed");
 
+  feed.classList.add("post-card-grid");
   feed.innerHTML = galleryPosts.length
-    ? galleryPosts.map(p => `
-        <article class="feed-post gallery-post-v3">
-          ${postTools("gallery", p.id)}
-          <p class="post-date">${new Date(p.created_at).toLocaleDateString("ko-KR")}</p>
-          ${p.title ? `<h3>${esc(p.title)}</h3>` : ""}
-          ${p.body ? `<div class="post-body">${esc(p.body).replace(/\n/g,"<br>")}</div>` : ""}
-          ${renderImages("gallery", p.id)}
-          ${p.image_url ? `
-            <figure class="legacy-image">
-              <img src="${p.image_url}" alt="${esc(p.caption || "")}">
-              ${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ""}
-            </figure>` : ""}
-        </article>
-      `).join("")
+    ? galleryPosts.map(p => renderPostCard("gallery", p)).join("")
     : `<p class="muted">등록된 갤러리 게시물이 없습니다.</p>`;
 
-  bindEditButtons();
+  bindPostCards();
 }
+
+
+function firstPostImage(kind, post) {
+  const imgs = imagesFor(kind, post.id);
+  if (imgs.length) return imgs[0].image_url;
+  if (post.image_url) return post.image_url;
+  return "";
+}
+
+function renderPostCard(kind, post) {
+  const thumb = firstPostImage(kind, post);
+  const title = post.title || (kind === "log" ? "LOG" : "GALLERY");
+  const bodyText = (post.body || post.caption || "").replace(/\n/g, " ").trim();
+
+  return `
+    <article class="post-card open-post-card" data-kind="${kind}" data-id="${post.id}" tabindex="0">
+      <div class="post-card-thumb ${thumb ? "" : "no-image"}">
+        ${thumb ? `<img src="${thumb}" alt="">` : `<span>${kind === "log" ? "LOG" : "IMAGE"}</span>`}
+      </div>
+      <div class="post-card-copy">
+        <p class="post-date">${new Date(post.created_at).toLocaleDateString("ko-KR")}</p>
+        <h3>${esc(title)}</h3>
+        ${bodyText ? `<p>${esc(bodyText)}</p>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function bindPostCards() {
+  document.querySelectorAll(".open-post-card").forEach(card => {
+    card.onclick = () => openPostViewer(card.dataset.kind, card.dataset.id);
+    card.onkeydown = e => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openPostViewer(card.dataset.kind, card.dataset.id);
+      }
+    };
+  });
+}
+
+function openPostViewer(kind, id) {
+  const post = kind === "log"
+    ? logs.find(x => x.id === id)
+    : galleryPosts.find(x => x.id === id);
+
+  if (!post) return;
+
+  document.getElementById("post-view-kind").textContent = kind.toUpperCase();
+  document.getElementById("post-view-title").textContent =
+    post.title || (kind === "log" ? "LOG" : "GALLERY");
+  document.getElementById("post-view-date").textContent =
+    new Date(post.created_at).toLocaleDateString("ko-KR");
+  document.getElementById("post-view-body").innerHTML =
+    post.body ? esc(post.body).replace(/\n/g,"<br>") : "";
+
+  const imgs = imagesFor(kind, id);
+  const legacy = post.image_url ? [{ image_url: post.image_url, caption: post.caption || "" }] : [];
+  const allImgs = [...imgs, ...legacy];
+
+  document.getElementById("post-view-images").innerHTML = allImgs.length
+    ? allImgs.map(img => `
+        <figure class="post-view-image">
+          <img src="${img.image_url}" alt="${esc(img.caption || "")}">
+          ${img.caption ? `<figcaption>${esc(img.caption)}</figcaption>` : ""}
+        </figure>
+      `).join("")
+    : "";
+
+  const tools = document.getElementById("post-view-owner-tools");
+  tools.classList.toggle("hidden", !isOwner);
+  document.getElementById("post-view-edit-btn").onclick = () => {
+    document.getElementById("post-view-dialog").close();
+    openEditor(kind, id);
+  };
+
+  document.getElementById("post-view-dialog").showModal();
+}
+
+document.getElementById("close-post-view").addEventListener("click", () => {
+  document.getElementById("post-view-dialog").close();
+});
+
 
 function bindEditButtons() {
   document.querySelectorAll(".edit-post").forEach(btn => {

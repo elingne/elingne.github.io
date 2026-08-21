@@ -142,20 +142,86 @@ function renderPosts(kind) {
   const target = document.getElementById(kind === "log" ? "pair-log-feed" : "pair-gallery-feed");
   const list = posts.filter(x => x.section === kind);
 
-  target.innerHTML = list.length ? list.map(p => `
-    <article class="feed-post">
-      ${isOwner ? `<div class="post-tools"><button class="ghost edit-pair-post" data-kind="${kind}" data-id="${p.id}">수정</button></div>` : ""}
-      <p class="post-date">${new Date(p.created_at).toLocaleDateString("ko-KR")}</p>
-      ${p.title ? `<h3>${esc(p.title)}</h3>` : ""}
-      ${p.body ? `<div class="post-body">${esc(p.body).replace(/\n/g,"<br>")}</div>` : ""}
-      ${renderImageGrid(p.id)}
-    </article>
-  `).join("") : `<p class="muted">등록된 게시물이 없습니다.</p>`;
+  target.classList.add("post-card-grid");
+  target.innerHTML = list.length
+    ? list.map(p => renderPairPostCard(kind, p)).join("")
+    : `<p class="muted">등록된 게시물이 없습니다.</p>`;
 
-  document.querySelectorAll(".edit-pair-post").forEach(btn => {
-    btn.onclick = () => openPostEditor(btn.dataset.kind, btn.dataset.id);
+  bindPairPostCards();
+}
+
+
+function firstPairPostImage(postId) {
+  const imgs = postImages(postId);
+  return imgs.length ? imgs[0].image_url : "";
+}
+
+function renderPairPostCard(kind, post) {
+  const thumb = firstPairPostImage(post.id);
+  const bodyText = (post.body || "").replace(/\n/g, " ").trim();
+
+  return `
+    <article class="post-card open-pair-post-card" data-kind="${kind}" data-id="${post.id}" tabindex="0">
+      <div class="post-card-thumb ${thumb ? "" : "no-image"}">
+        ${thumb ? `<img src="${thumb}" alt="">` : `<span>${kind === "log" ? "LOG" : "IMAGE"}</span>`}
+      </div>
+      <div class="post-card-copy">
+        <p class="post-date">${new Date(post.created_at).toLocaleDateString("ko-KR")}</p>
+        <h3>${esc(post.title || (kind === "log" ? "LOG" : "GALLERY"))}</h3>
+        ${bodyText ? `<p>${esc(bodyText)}</p>` : ""}
+      </div>
+    </article>
+  `;
+}
+
+function bindPairPostCards() {
+  document.querySelectorAll(".open-pair-post-card").forEach(card => {
+    card.onclick = () => openPairPostViewer(card.dataset.kind, card.dataset.id);
+    card.onkeydown = e => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openPairPostViewer(card.dataset.kind, card.dataset.id);
+      }
+    };
   });
 }
+
+function openPairPostViewer(kind, id) {
+  const post = posts.find(x => x.id === id);
+  if (!post) return;
+
+  document.getElementById("post-view-kind").textContent = kind.toUpperCase();
+  document.getElementById("post-view-title").textContent =
+    post.title || (kind === "log" ? "LOG" : "GALLERY");
+  document.getElementById("post-view-date").textContent =
+    new Date(post.created_at).toLocaleDateString("ko-KR");
+  document.getElementById("post-view-body").innerHTML =
+    post.body ? esc(post.body).replace(/\n/g,"<br>") : "";
+
+  const imgs = postImages(id);
+  document.getElementById("post-view-images").innerHTML = imgs.length
+    ? imgs.map(img => `
+        <figure class="post-view-image">
+          <img src="${img.image_url}" alt="${esc(img.caption || "")}">
+          ${img.caption ? `<figcaption>${esc(img.caption)}</figcaption>` : ""}
+        </figure>
+      `).join("")
+    : "";
+
+  const tools = document.getElementById("post-view-owner-tools");
+  tools.classList.toggle("hidden", !isOwner);
+  document.getElementById("pair-post-view-edit-btn").onclick = () => {
+    document.getElementById("pair-post-view-dialog").close();
+    openPostEditor(kind, id);
+  };
+
+  document.getElementById("pair-post-view-dialog").showModal();
+}
+
+document.getElementById("close-pair-post-view").addEventListener("click", () => {
+  document.getElementById("pair-post-view-dialog").close();
+});
+
 
 function renderProfileEditor() {
   if (profiles.length >= 2) {
