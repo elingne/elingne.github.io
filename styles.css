@@ -371,3 +371,52 @@ footer { border-top: 1px solid var(--line); padding: 25px 6vw 50px; color: var(-
     flex-direction:column;
   }
 }
+
+
+/* v5 */
+.hero-profile {
+  display:grid;
+  grid-template-columns:220px 1fr;
+  gap:40px;
+  align-items:center;
+}
+.main-profile-image {
+  width:220px;
+  aspect-ratio:1/1;
+  border:1px solid var(--line);
+  background:var(--paper);
+  overflow:hidden;
+}
+.main-profile-image img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.profile-placeholder {
+  width:100%;
+  height:100%;
+  display:grid;
+  place-items:center;
+  color:var(--muted);
+  font-size:.75rem;
+  letter-spacing:.15em;
+}
+.profile-editor-thumb {
+  width:100%;
+  max-width:180px;
+  aspect-ratio:1/1;
+  object-fit:cover;
+  display:block;
+  margin:8px 0 12px;
+  border:1px solid var(--line);
+}
+.relationship-edit-label { margin-top:24px; }
+
+@media (max-width:700px) {
+  .hero-profile {
+    grid-template-columns:1fr;
+  }
+  .main-profile-image {
+    width:160px;
+  }
+}

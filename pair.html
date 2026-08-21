@@ -18,12 +18,10 @@
   </header>
 
   <main class="character-page">
-    <section id="pair-head" class="pair-head">
-      <div>
-        <p class="eyebrow">PAIR</p>
-        <h1 id="pair-name">PAIR</h1>
-        <p id="pair-summary" class="muted"></p>
-      </div>
+    <section class="pair-head">
+      <p class="eyebrow">PAIR</p>
+      <h1 id="pair-name">PAIR</h1>
+      <p id="pair-summary" class="muted"></p>
     </section>
 
     <div id="owner-pair-tools" class="owner-tools hidden">
@@ -42,9 +40,7 @@
         <h2>PROFILE</h2>
         <button id="edit-pair-profile-btn" class="owner-only hidden">프로필 편집</button>
       </div>
-
-      <div id="pair-member-grid" class="pair-member-grid"></div>
-
+      <div id="pair-profile-grid" class="pair-member-grid"></div>
       <article class="relationship-card">
         <p class="eyebrow">RELATIONSHIP</p>
         <h3>관계성</h3>
@@ -93,11 +89,12 @@
         <button value="cancel" class="ghost">닫기</button>
       </div>
 
-      <p class="muted">기존 캐릭터 중 최대 4명까지 선택할 수 있습니다.</p>
-      <div id="member-editor-list" class="member-editor-list"></div>
+      <p class="muted">기본 2명이며, + 인원 추가로 최대 8명까지 늘릴 수 있습니다.</p>
+      <div id="profile-editor-list" class="member-editor-list"></div>
+      <button id="add-profile-person-btn" type="button" class="ghost">+ 인원 추가</button>
 
-      <label>관계성 설명
-        <textarea id="relationship-edit" rows="10" placeholder="이 캐릭터들의 관계성을 한 번에 서술하세요."></textarea>
+      <label class="relationship-edit-label">관계성 설명
+        <textarea id="relationship-edit" rows="10"></textarea>
       </label>
 
       <button id="save-profile-btn" type="button">프로필 저장</button>
@@ -111,35 +108,22 @@
         <h2 id="post-dialog-title">게시물 편집</h2>
         <button value="cancel" class="ghost">닫기</button>
       </div>
-
       <input id="post-kind" type="hidden">
       <input id="post-id" type="hidden">
-
       <label>제목
         <input id="post-title" type="text" placeholder="선택사항">
       </label>
-
       <label>내용
-        <textarea id="post-body" rows="9" placeholder="텍스트 없이 사진만 올려도 됩니다."></textarea>
+        <textarea id="post-body" rows="9"></textarea>
       </label>
-
       <div class="multi-image-box">
-        <div class="subhead">
-          <strong>이미지</strong>
-          <span class="muted">여러 장 선택 가능</span>
-        </div>
+        <div class="subhead"><strong>이미지</strong><span class="muted">여러 장 선택 가능</span></div>
         <input id="post-images" type="file" accept="image/*" multiple>
         <div id="post-new-caption-list" class="image-edit-list"></div>
       </div>
-
       <div id="post-existing-wrap" class="multi-image-box hidden">
-        <div class="subhead">
-          <strong>현재 이미지</strong>
-          <span class="muted">캡션 수정 / 개별 삭제 가능</span>
-        </div>
         <div id="post-existing-list" class="image-edit-list"></div>
       </div>
-
       <div class="button-row">
         <button id="save-post-btn" type="button">저장</button>
         <button id="delete-post-btn" type="button" class="danger hidden">게시물 삭제</button>
@@ -149,9 +133,8 @@
   </dialog>
 
   <footer>© elingne</footer>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
-  <script src="pair-v4.js"></script>
+  <script src="pair-v5.js"></script>
 </body>
 </html>

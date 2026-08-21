@@ -18,16 +18,23 @@
   </header>
 
   <main>
-    <section class="hero">
-      <p class="eyebrow">ORIGINAL CHARACTER ARCHIVE</p>
-      <h1>MAIN</h1>
-      <p>자캐와 커뮤니티 활동을 정리하는 개인 홈페이지입니다.</p>
+    <section class="hero hero-profile">
+      <div id="main-profile-image" class="main-profile-image"></div>
+      <div class="main-profile-copy">
+        <p class="eyebrow">ORIGINAL CHARACTER ARCHIVE</p>
+        <h1 id="main-title">MAIN</h1>
+        <p id="main-text">자캐와 커뮤니티 활동을 정리하는 개인 홈페이지입니다.</p>
+        <button id="edit-main-btn" class="ghost owner-only hidden">메인 수정</button>
+      </div>
     </section>
 
     <section id="characters" class="section">
-      <div class="section-heading">
-        <p class="eyebrow">ARCHIVE</p>
-        <h2>CHARACTER</h2>
+      <div class="section-heading pair-heading-row">
+        <div>
+          <p class="eyebrow">ARCHIVE</p>
+          <h2>CHARACTER</h2>
+        </div>
+        <button id="new-character-btn" class="owner-only hidden">+ 새 캐릭터</button>
       </div>
       <div id="character-grid" class="character-grid">
         <p class="muted">캐릭터를 불러오는 중...</p>
@@ -40,7 +47,7 @@
           <p class="eyebrow">RELATIONSHIP ARCHIVE</p>
           <h2>PAIR</h2>
         </div>
-        <a id="new-pair-link" class="button-link hidden" href="pair.html?new=1">+ 새 페어</a>
+        <a id="new-pair-link" class="button-link owner-only hidden" href="pair.html?new=1">+ 새 페어</a>
       </div>
       <div id="pair-grid" class="character-grid">
         <p class="muted">페어를 불러오는 중...</p>
@@ -48,10 +55,30 @@
     </section>
   </main>
 
+  <dialog id="main-dialog" class="editor-dialog">
+    <form method="dialog" class="editor-shell">
+      <div class="editor-top">
+        <h2>메인 수정</h2>
+        <button value="cancel" class="ghost">닫기</button>
+      </div>
+      <label>사이트 제목
+        <input id="main-edit-title" type="text">
+      </label>
+      <label>소개 문구
+        <textarea id="main-edit-text" rows="6"></textarea>
+      </label>
+      <label>프로필 사진
+        <input id="main-edit-image" type="file" accept="image/*">
+      </label>
+      <button id="save-main-btn" type="button">저장</button>
+      <p id="main-edit-msg" class="status"></p>
+    </form>
+  </dialog>
+
   <footer>© elingne</footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
-  <script src="app-v4.js"></script>
+  <script src="app-v5.js"></script>
 </body>
 </html>

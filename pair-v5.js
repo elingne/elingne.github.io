@@ -1,0 +1,403 @@
+const params = new URLSearchParams(location.search);
+let pairId = params.get("id");
+const newMode = params.get("new") === "1";
+
+let isOwner = false;
+let pair = null;
+let profiles = [];
+let posts = [];
+let images = [];
+let selectedPostFiles = [];
+let editProfileRows = [];
+
+const profileDialog = document.getElementById("profile-dialog");
+const pairDialog = document.getElementById("pair-dialog");
+const postDialog = document.getElementById("post-dialog");
+
+function esc(value = "") {
+  return String(value).replace(/[&<>"']/g, m => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  })[m]);
+}
+
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(x => x.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  });
+});
+
+async function checkOwner() {
+  const { data } = await db.auth.getSession();
+  isOwner = !!data.session;
+  document.querySelectorAll(".owner-only").forEach(x => x.classList.toggle("hidden", !isOwner));
+  document.getElementById("owner-pair-tools").classList.toggle("hidden", !isOwner);
+
+  const link = document.getElementById("auth-link");
+  if (isOwner) {
+    link.textContent = "LOGOUT";
+    link.href = "#";
+    link.onclick = async e => {
+      e.preventDefault();
+      await db.auth.signOut();
+      location.href = "index.html#pairs";
+    };
+  }
+}
+
+async function uploadImage(file, folder) {
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await db.storage.from("gallery").upload(path, file, { upsert:false });
+  if (error) throw error;
+  const { data } = db.storage.from("gallery").getPublicUrl(path);
+  return { url:data.publicUrl, path };
+}
+
+function storagePathFromUrl(url) {
+  const marker = "/storage/v1/object/public/gallery/";
+  const idx = (url || "").indexOf(marker);
+  if (idx === -1) return null;
+  return decodeURIComponent(url.slice(idx + marker.length));
+}
+
+async function createPairIfNeeded() {
+  if (!newMode) return;
+  if (!isOwner) {
+    location.href = "admin.html";
+    return;
+  }
+  const { data, error } = await db.from("pairs").insert({ name:"새 페어", summary:"" }).select().single();
+  if (error) return alert(error.message);
+
+  await db.from("pair_profiles").insert([
+    { pair_id:data.id, name:"인물 1", profile_text:"", sort_order:0 },
+    { pair_id:data.id, name:"인물 2", profile_text:"", sort_order:1 }
+  ]);
+
+  location.replace(`pair.html?id=${data.id}`);
+}
+
+async function loadPair() {
+  if (!pairId) return;
+
+  const [pairRes, profileRes, postRes, imageRes] = await Promise.all([
+    db.from("pairs").select("*").eq("id", pairId).single(),
+    db.from("pair_profiles").select("*").eq("pair_id", pairId).order("sort_order"),
+    db.from("pair_posts").select("*").eq("pair_id", pairId).order("created_at", {ascending:false}),
+    db.from("pair_post_images").select("*").eq("pair_id", pairId).order("sort_order").order("created_at")
+  ]);
+
+  pair = pairRes.data;
+  profiles = profileRes.data || [];
+  posts = postRes.data || [];
+  images = imageRes.data || [];
+
+  renderPair();
+}
+
+function renderPair() {
+  if (!pair) return;
+  document.getElementById("pair-name").textContent = pair.name;
+  document.getElementById("pair-summary").textContent = pair.summary || "";
+
+  document.getElementById("pair-profile-grid").innerHTML = profiles.length ? profiles.map(p => `
+    <article class="pair-member-card">
+      <img src="${p.image_url || ""}" alt="${esc(p.name)}">
+      <div class="pair-member-copy">
+        <p class="eyebrow">MEMBER ${Number(p.sort_order)+1}</p>
+        <h3>${esc(p.name)}</h3>
+        <div class="post-body">${esc(p.profile_text || "").replace(/\n/g,"<br>")}</div>
+      </div>
+    </article>
+  `).join("") : `<p class="muted">프로필이 없습니다.</p>`;
+
+  document.getElementById("relationship-text").innerHTML =
+    pair.relationship_text ? esc(pair.relationship_text).replace(/\n/g,"<br>") : `<span class="muted">관계성 설명이 없습니다.</span>`;
+
+  renderPosts("log");
+  renderPosts("gallery");
+}
+
+function postImages(postId) {
+  return images.filter(x => x.post_id === postId).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+}
+
+function renderImageGrid(postId) {
+  const imgs = postImages(postId);
+  if (!imgs.length) return "";
+  return `<div class="post-image-grid">
+    ${imgs.map(img => `
+      <figure class="post-image">
+        <img src="${img.image_url}" alt="${esc(img.caption || "")}">
+        ${img.caption ? `<figcaption>${esc(img.caption)}</figcaption>` : ""}
+      </figure>
+    `).join("")}
+  </div>`;
+}
+
+function renderPosts(kind) {
+  const target = document.getElementById(kind === "log" ? "pair-log-feed" : "pair-gallery-feed");
+  const list = posts.filter(x => x.section === kind);
+
+  target.innerHTML = list.length ? list.map(p => `
+    <article class="feed-post">
+      ${isOwner ? `<div class="post-tools"><button class="ghost edit-pair-post" data-kind="${kind}" data-id="${p.id}">수정</button></div>` : ""}
+      <p class="post-date">${new Date(p.created_at).toLocaleDateString("ko-KR")}</p>
+      ${p.title ? `<h3>${esc(p.title)}</h3>` : ""}
+      ${p.body ? `<div class="post-body">${esc(p.body).replace(/\n/g,"<br>")}</div>` : ""}
+      ${renderImageGrid(p.id)}
+    </article>
+  `).join("") : `<p class="muted">등록된 게시물이 없습니다.</p>`;
+
+  document.querySelectorAll(".edit-pair-post").forEach(btn => {
+    btn.onclick = () => openPostEditor(btn.dataset.kind, btn.dataset.id);
+  });
+}
+
+function renderProfileEditor() {
+  if (profiles.length >= 2) {
+    editProfileRows = profiles.map(x => ({...x, file:null, remove:false}));
+  } else {
+    editProfileRows = [
+      ...(profiles.map(x => ({...x, file:null, remove:false}))),
+      ...Array.from({length:2-profiles.length}, (_,i)=>({
+        id:null, name:`인물 ${profiles.length+i+1}`, profile_text:"", image_url:null, sort_order:profiles.length+i, file:null, remove:false
+      }))
+    ];
+  }
+  drawProfileEditor();
+}
+
+function drawProfileEditor() {
+  document.getElementById("profile-editor-list").innerHTML = editProfileRows.map((p,i) => `
+    <div class="member-editor-card" data-row="${i}">
+      <div class="editor-top">
+        <p class="eyebrow">MEMBER ${i+1}</p>
+        ${editProfileRows.length > 2 ? `<button type="button" class="ghost remove-profile-row" data-index="${i}">이 인물 제거</button>` : ""}
+      </div>
+      <label>이름
+        <input class="profile-name" data-index="${i}" type="text" value="${esc(p.name || "")}">
+      </label>
+      ${p.image_url ? `<img class="profile-editor-thumb" src="${p.image_url}" alt="">` : ""}
+      <label>프로필 사진
+        <input class="profile-image" data-index="${i}" type="file" accept="image/*">
+      </label>
+      <label>개별 프로필
+        <textarea class="profile-text" data-index="${i}" rows="6">${esc(p.profile_text || "")}</textarea>
+      </label>
+    </div>
+  `).join("");
+
+  document.querySelectorAll(".remove-profile-row").forEach(btn => {
+    btn.onclick = () => {
+      editProfileRows.splice(Number(btn.dataset.index), 1);
+      drawProfileEditor();
+    };
+  });
+}
+
+document.getElementById("edit-pair-profile-btn").addEventListener("click", () => {
+  renderProfileEditor();
+  document.getElementById("relationship-edit").value = pair?.relationship_text || "";
+  document.getElementById("profile-edit-msg").textContent = "";
+  profileDialog.showModal();
+});
+
+document.getElementById("add-profile-person-btn").addEventListener("click", () => {
+  if (editProfileRows.length >= 8) return alert("최대 8명까지 추가할 수 있습니다.");
+  editProfileRows.push({
+    id:null, name:`인물 ${editProfileRows.length+1}`, profile_text:"", image_url:null,
+    sort_order:editProfileRows.length, file:null, remove:false
+  });
+  drawProfileEditor();
+});
+
+document.getElementById("save-profile-btn").addEventListener("click", async () => {
+  const msg = document.getElementById("profile-edit-msg");
+  try {
+    msg.textContent = "저장 중...";
+
+    const names = Array.from(document.querySelectorAll(".profile-name"));
+    const texts = Array.from(document.querySelectorAll(".profile-text"));
+    const files = Array.from(document.querySelectorAll(".profile-image"));
+
+    const newRows = [];
+    for (let i=0; i<editProfileRows.length; i++) {
+      const base = editProfileRows[i];
+      let image_url = base.image_url || null;
+      const file = files[i]?.files?.[0];
+      if (file) {
+        const up = await uploadImage(file, `pair/${pairId}/profiles`);
+        image_url = up.url;
+      }
+
+      newRows.push({
+        pair_id: pairId,
+        name: names[i].value.trim() || `인물 ${i+1}`,
+        profile_text: texts[i].value,
+        image_url,
+        sort_order: i
+      });
+    }
+
+    const { error: relError } = await db.from("pairs").update({
+      relationship_text: document.getElementById("relationship-edit").value
+    }).eq("id", pairId);
+    if (relError) throw relError;
+
+    const { error: delError } = await db.from("pair_profiles").delete().eq("pair_id", pairId);
+    if (delError) throw delError;
+
+    const { error: insError } = await db.from("pair_profiles").insert(newRows);
+    if (insError) throw insError;
+
+    profileDialog.close();
+    await loadPair();
+  } catch (e) {
+    msg.textContent = e.message;
+  }
+});
+
+document.getElementById("edit-pair-btn").addEventListener("click", () => {
+  document.getElementById("pair-edit-name").value = pair?.name || "";
+  document.getElementById("pair-edit-summary").value = pair?.summary || "";
+  pairDialog.showModal();
+});
+
+document.getElementById("save-pair-btn").addEventListener("click", async () => {
+  const { error } = await db.from("pairs").update({
+    name: document.getElementById("pair-edit-name").value.trim() || "PAIR",
+    summary: document.getElementById("pair-edit-summary").value.trim()
+  }).eq("id", pairId);
+
+  if (error) return document.getElementById("pair-edit-msg").textContent = error.message;
+  pairDialog.close();
+  loadPair();
+});
+
+document.getElementById("delete-pair-btn").addEventListener("click", async () => {
+  if (!confirm("이 페어를 삭제할까요?")) return;
+  const { error } = await db.from("pairs").delete().eq("id", pairId);
+  if (error) return alert(error.message);
+  location.href = "index.html#pairs";
+});
+
+document.querySelectorAll("[data-open-post-editor]").forEach(btn => {
+  btn.onclick = () => openPostEditor(btn.dataset.openPostEditor);
+});
+
+function openPostEditor(kind, id="") {
+  selectedPostFiles = [];
+  document.getElementById("post-kind").value = kind;
+  document.getElementById("post-id").value = id;
+  document.getElementById("post-title").value = "";
+  document.getElementById("post-body").value = "";
+  document.getElementById("post-images").value = "";
+  document.getElementById("post-new-caption-list").innerHTML = "";
+  document.getElementById("post-existing-list").innerHTML = "";
+  document.getElementById("post-existing-wrap").classList.add("hidden");
+  document.getElementById("delete-post-btn").classList.toggle("hidden", !id);
+
+  if (id) {
+    const p = posts.find(x=>x.id===id);
+    document.getElementById("post-title").value = p?.title || "";
+    document.getElementById("post-body").value = p?.body || "";
+    const imgs = postImages(id);
+    if (imgs.length) {
+      document.getElementById("post-existing-wrap").classList.remove("hidden");
+      document.getElementById("post-existing-list").innerHTML = imgs.map(img => `
+        <div class="image-edit-row" data-image-id="${img.id}">
+          <img src="${img.image_url}" alt="">
+          <div class="image-edit-fields">
+            <input class="existing-caption" type="text" value="${esc(img.caption || "")}">
+            <label class="inline-check"><input class="delete-existing-image" type="checkbox"> 이 이미지 삭제</label>
+          </div>
+        </div>
+      `).join("");
+    }
+  }
+
+  document.getElementById("post-dialog-title").textContent = kind === "log" ? "PAIR LOG 편집" : "PAIR GALLERY 편집";
+  postDialog.showModal();
+}
+
+document.getElementById("post-images").addEventListener("change", e => {
+  selectedPostFiles = Array.from(e.target.files || []);
+  document.getElementById("post-new-caption-list").innerHTML = selectedPostFiles.map((f,i)=>`
+    <div class="new-image-row">
+      <span class="file-name">${esc(f.name)}</span>
+      <input class="new-image-caption" data-index="${i}" type="text" placeholder="이미지 캡션">
+    </div>
+  `).join("");
+});
+
+async function saveExistingImages() {
+  for (const row of document.querySelectorAll(".image-edit-row")) {
+    const id = row.dataset.imageId;
+    const del = row.querySelector(".delete-existing-image").checked;
+    const caption = row.querySelector(".existing-caption").value;
+    if (del) {
+      await db.from("pair_post_images").delete().eq("id", id);
+    } else {
+      await db.from("pair_post_images").update({caption}).eq("id", id);
+    }
+  }
+}
+
+async function saveNewImages(postId) {
+  const caps = Array.from(document.querySelectorAll(".new-image-caption"));
+  for (let i=0; i<selectedPostFiles.length; i++) {
+    const up = await uploadImage(selectedPostFiles[i], `pair/${pairId}/${postId}`);
+    const caption = caps.find(x=>Number(x.dataset.index)===i)?.value || "";
+    const { error } = await db.from("pair_post_images").insert({
+      pair_id:pairId, post_id:postId, image_url:up.url, caption, sort_order:i
+    });
+    if (error) throw error;
+  }
+}
+
+document.getElementById("save-post-btn").addEventListener("click", async () => {
+  const kind = document.getElementById("post-kind").value;
+  const id = document.getElementById("post-id").value;
+  const msg = document.getElementById("post-edit-msg");
+  try {
+    let postId = id;
+    const payload = {
+      pair_id:pairId, section:kind,
+      title:document.getElementById("post-title").value.trim(),
+      body:document.getElementById("post-body").value
+    };
+    if (id) {
+      const { error } = await db.from("pair_posts").update(payload).eq("id", id);
+      if (error) throw error;
+      await saveExistingImages();
+    } else {
+      const { data, error } = await db.from("pair_posts").insert(payload).select().single();
+      if (error) throw error;
+      postId = data.id;
+    }
+    await saveNewImages(postId);
+    postDialog.close();
+    loadPair();
+  } catch (e) {
+    msg.textContent = e.message;
+  }
+});
+
+document.getElementById("delete-post-btn").addEventListener("click", async () => {
+  const id = document.getElementById("post-id").value;
+  if (!id || !confirm("이 게시물을 삭제할까요?")) return;
+  const { error } = await db.from("pair_posts").delete().eq("id", id);
+  if (error) return document.getElementById("post-edit-msg").textContent = error.message;
+  postDialog.close();
+  loadPair();
+});
+
+(async function init(){
+  await checkOwner();
+  await createPairIfNeeded();
+  if (pairId) await loadPair();
+})();
