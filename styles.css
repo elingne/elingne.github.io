@@ -1603,3 +1603,33 @@ button:disabled {
 .profile-crop-preview-box .profile-crop-preview{width:96px;height:96px;object-fit:cover;border-radius:14px;margin:0;flex:0 0 auto;border:1px solid rgba(0,0,0,.08)}
 .profile-crop-preview-box span{font-size:.82rem;color:var(--muted,#8d8d99);white-space:nowrap}
 @media (max-width:520px){.profile-crop-preview-box .profile-crop-preview{width:80px;height:80px}.profile-crop-preview-box span{white-space:normal}}
+
+
+/* =========================================================
+   v23 — unified pastel image backgrounds
+   Transparent PNG areas and empty profile slots share theme.
+   ========================================================= */
+.character-card .card-image,
+.character-card img,
+.character-head img,
+.pair-card .card-image,
+.pair-card img,
+.member-card,
+.member-card img,
+.profile-image,
+.profile-image img,
+.profile-placeholder,
+.profile-editor-thumb {
+  background-color: var(--pink-soft);
+  background-image: linear-gradient(145deg, var(--pink-soft), var(--sky-soft));
+}
+
+/* Keep the pastel surface visible through transparent pixels. */
+.character-card .card-image,
+.pair-card .card-image,
+.character-head,
+.member-card,
+.profile-image {
+  background-color: var(--pink-soft);
+  background-image: linear-gradient(145deg, var(--pink-soft), var(--sky-soft));
+}
