@@ -1538,3 +1538,68 @@ button:disabled {
     max-height: calc(100dvh - 16px);
   }
 }
+
+
+/* v20: per-post 4-digit lock */
+.post-lock-editor {
+  padding: 14px 16px;
+  border: 1px solid var(--line, #e7e7ee);
+  border-radius: 16px;
+  background: rgba(255,255,255,.55);
+}
+.lock-toggle-row {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  margin: 0 !important;
+  cursor: pointer;
+}
+.lock-toggle-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+.post-lock-settings { margin-top: 12px; }
+.post-lock-settings label { margin: 0; }
+.lock-help { margin: 8px 0 0; font-size: .9rem; }
+
+.post-card.locked .post-card-thumb {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(244,191,218,.22), rgba(184,222,246,.28));
+}
+.post-card.locked .post-card-thumb img {
+  filter: blur(18px);
+  opacity: .12;
+  transform: scale(1.08);
+}
+.post-card.locked .post-card-thumb.no-image > span:not(.post-lock-overlay) {
+  opacity: .1;
+}
+.post-lock-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  line-height: 1;
+  opacity: .72;
+  pointer-events: none;
+}
+.post-card.locked .post-card-copy > p:last-child { opacity: .62; }
+
+.lock-dialog { max-width: 460px; }
+.lock-dialog-shell { min-width: 0; }
+.lock-pin-input {
+  text-align: center;
+  font-size: 1.6rem !important;
+  letter-spacing: .5em;
+  padding-left: calc(.5em + 12px) !important;
+}
+
+
+/* v21: cropped representative image preview before saving */
+.profile-crop-preview-box{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;border:1px solid rgba(120,130,155,.18);border-radius:14px;background:rgba(255,255,255,.5);width:max-content;max-width:100%}
+.profile-crop-preview-box .profile-crop-preview{width:96px;height:96px;object-fit:cover;border-radius:14px;margin:0;flex:0 0 auto;border:1px solid rgba(0,0,0,.08)}
+.profile-crop-preview-box span{font-size:.82rem;color:var(--muted,#8d8d99);white-space:nowrap}
+@media (max-width:520px){.profile-crop-preview-box .profile-crop-preview{width:80px;height:80px}.profile-crop-preview-box span{white-space:normal}}

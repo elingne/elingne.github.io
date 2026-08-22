@@ -6,6 +6,26 @@ let isOwner = false;
 let croppedMainProfileFile = null;
 let mainSettings = null;
 
+function setProfileCropPreview(input, src, note = "저장 전 미리보기") {
+  if (!input) return;
+  const label = input.closest("label") || input.parentElement;
+  let box = label?.querySelector(".profile-crop-preview-box");
+  if (!box && label) {
+    box = document.createElement("div");
+    box.className = "profile-crop-preview-box";
+    label.appendChild(box);
+  }
+  if (!box) return;
+  box.innerHTML = src ? `<img class="profile-crop-preview" src="${src}" alt="대표사진 저장 전 미리보기"><span>${note}</span>` : "";
+}
+
+function previewFile(input, file, note) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => setProfileCropPreview(input, reader.result, note);
+  reader.readAsDataURL(file);
+}
+
 function esc(value = "") {
   return String(value).replace(/[&<>"']/g, m => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
@@ -143,6 +163,8 @@ document.getElementById("edit-main-btn").addEventListener("click", () => {
   document.getElementById("main-edit-text").value = mainSettings?.intro_text || "";
   document.getElementById("main-edit-image").value = "";
   croppedMainProfileFile = null;
+  const mainImageInput = document.getElementById("main-edit-image");
+  setProfileCropPreview(mainImageInput, mainSettings?.profile_image_url || "", mainSettings?.profile_image_url ? "현재 대표사진" : "");
   document.getElementById("main-edit-msg").textContent = "";
   document.getElementById("main-dialog").showModal();
 });
@@ -152,7 +174,11 @@ document.getElementById("main-edit-image").addEventListener("change", async (e) 
   if (!file) return;
   try {
     const cropped = await window.cropSquareImage(file);
-    if (cropped) { croppedMainProfileFile = cropped; document.getElementById("main-edit-msg").textContent = "정사각형 크롭이 적용됐어요."; }
+    if (cropped) {
+      croppedMainProfileFile = cropped;
+      previewFile(e.target, cropped, "저장 전 미리보기");
+      document.getElementById("main-edit-msg").textContent = "정사각형 크롭이 적용됐어요. 아래 미리보기를 확인한 뒤 저장해 주세요.";
+    }
     else { e.target.value = ""; croppedMainProfileFile = null; }
   } catch (err) { document.getElementById("main-edit-msg").textContent = err.message; }
 });
