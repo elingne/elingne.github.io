@@ -64,7 +64,7 @@ async function renderSpaRoute() {
   try {
     if (route.view === "main") await runViewScript("app-v9.js", token);
     if (route.view === "character") await runViewScript("character-v7.js", token);
-    if (route.view === "pair") await runViewScript("pair-v8.js", token);
+    if (route.view === "pair") await runViewScript("pair-v9.js", token);
     if (route.view === "admin") await runViewScript("admin-v3.js", token);
   } catch (error) {
     console.error("SPA view init failed", error);
