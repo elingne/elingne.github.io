@@ -1705,3 +1705,69 @@ button:disabled {
 .coupling-input-wrap label{margin:0}
 .compact-ghost{white-space:nowrap;margin-bottom:1px}
 @media(max-width:640px){.character-detail-editor-grid{grid-template-columns:1fr}.coupling-input-wrap{grid-template-columns:1fr}.compact-ghost{justify-self:start}.character-meta-row{grid-template-columns:62px 1fr}}
+
+
+/* ===== v29 coupling visual polish ===== */
+/* 캐릭터 상세: 커플링 표시를 한줄 설명과 조금 띄우고 더 또렷하게 */
+.character-coupling,
+.character-couple,
+.coupling-line,
+.couple-line,
+.character-partner {
+  margin-top: 10px !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+  color: #222 !important;
+  font-weight: 600 !important;
+}
+
+/* 상대 이름은 진한 글씨 */
+.character-coupling .coupling-name,
+.character-couple .coupling-name,
+.coupling-line .coupling-name,
+.couple-line .coupling-name,
+.character-partner .coupling-name,
+.character-coupling .partner-name,
+.character-couple .partner-name,
+.coupling-line .partner-name,
+.couple-line .partner-name,
+.character-partner .partner-name {
+  color: #222 !important;
+  font-weight: 700 !important;
+}
+
+/* 기존 텍스트 하트도 조금 더 통통하게 보이도록 */
+.character-coupling .coupling-heart,
+.character-couple .coupling-heart,
+.coupling-line .coupling-heart,
+.couple-line .coupling-heart,
+.character-partner .coupling-heart,
+.couple-badge,
+.coupling-badge,
+.character-card-coupling,
+.character-card-heart {
+  font-family: "Arial Rounded MT Bold", "Arial", sans-serif !important;
+  font-weight: 900 !important;
+}
+
+/* 메인 카드 우측 상단 하트 배지 */
+.couple-badge,
+.coupling-badge,
+.character-card-coupling,
+.character-card-heart {
+  border-radius: 999px !important;
+  min-width: 25px !important;
+  min-height: 25px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  font-size: 15px !important;
+}
+
+/* 상세 프로필 한줄 설명과 커플링 사이 간격 보강 */
+.character-head .character-summary,
+.character-head .char-summary,
+.character-summary {
+  margin-bottom: 10px !important;
+}

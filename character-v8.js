@@ -192,21 +192,6 @@ function renderHashtags(value) {
   const tags = normalizeHashtags(value);
   return tags.length ? `<div class="hashtag-row">${tags.map(tag => `<span class="hashtag-chip">#${esc(tag)}</span>`).join("")}</div>` : "";
 }
-function renderCharacterMeta(c) {
-  const rows = [
-    ["종족", c?.species],
-    ["나이", c?.age],
-    ["신체", c?.body_info],
-    ["가족", c?.family_profile]
-  ].filter(([, value]) => String(value || "").trim());
-  if (!rows.length) return "";
-  return `<dl class="character-meta-table">${rows.map(([label,value]) => `<div class="character-meta-row"><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl>`;
-}
-
-function renderCouplingLine(c) {
-  const name = String(c?.coupling_name || "").trim();
-  return name ? `<p class="character-coupling"><span aria-hidden="true">♥</span><span>${esc(name)}</span></p>` : "";
-}
 function safeAttachments(value) {
   if (Array.isArray(value)) return value;
   if (typeof value === "string") { try { const x = JSON.parse(value); return Array.isArray(x) ? x : []; } catch {} }
@@ -335,10 +320,8 @@ function renderHead() {
     <div>
       <p class="eyebrow">CHARACTER</p>
       <h1>${esc(character.name)}</h1>
-      ${renderCouplingLine(character)}
-      <p class="muted character-summary">${esc(character.summary || "")}</p>
+      <p class="muted">${esc(character.summary || "")}</p>
       ${renderHashtags(character.hashtags)}
-      ${renderCharacterMeta(character)}
     </div>
   `;
 }
@@ -705,34 +688,12 @@ document.getElementById("edit-character-btn").addEventListener("click", () => {
   document.getElementById("char-name").value = character?.name || "";
   document.getElementById("char-summary").value = character?.summary || "";
   document.getElementById("char-hashtags").value = hashtagText(character?.hashtags);
-  document.getElementById("char-species").value = character?.species || "";
-  document.getElementById("char-age").value = character?.age || "";
-  document.getElementById("char-body-info").value = character?.body_info || "";
-  document.getElementById("char-family-profile").value = character?.family_profile || "";
-  document.getElementById("char-coupling-name").value = character?.coupling_name || "";
-  const couplingWrap = document.getElementById("coupling-input-wrap");
-  const couplingToggle = document.getElementById("toggle-coupling-btn");
-  const hasCoupling = !!String(character?.coupling_name || "").trim();
-  couplingWrap.classList.toggle("hidden", !hasCoupling);
-  couplingToggle.textContent = hasCoupling ? "♥ 커플링 정보" : "♥ 커플링 추가하기";
   document.getElementById("char-image").value = "";
   croppedCharacterFile = null;
   const charImageInput = document.getElementById("char-image");
   setCharacterCropPreview(charImageInput, character?.image_url || "", character?.image_url ? "현재 대표사진" : "");
   document.getElementById("char-msg").textContent = "";
   charEditor.showModal();
-});
-
-document.getElementById("toggle-coupling-btn")?.addEventListener("click", () => {
-  const wrap = document.getElementById("coupling-input-wrap");
-  wrap.classList.toggle("hidden");
-  if (!wrap.classList.contains("hidden")) document.getElementById("char-coupling-name")?.focus();
-});
-
-document.getElementById("clear-coupling-btn")?.addEventListener("click", () => {
-  document.getElementById("char-coupling-name").value = "";
-  document.getElementById("coupling-input-wrap").classList.add("hidden");
-  document.getElementById("toggle-coupling-btn").textContent = "♥ 커플링 추가하기";
 });
 
 document.getElementById("char-image").addEventListener("change", async (e) => {
@@ -758,12 +719,7 @@ document.getElementById("save-character-btn").addEventListener("click", async ()
     const payload = {
       name: document.getElementById("char-name").value.trim(),
       summary: document.getElementById("char-summary").value.trim(),
-      hashtags: normalizeHashtags(document.getElementById("char-hashtags").value),
-      coupling_name: document.getElementById("char-coupling-name").value.trim() || null,
-      species: document.getElementById("char-species").value.trim() || null,
-      age: document.getElementById("char-age").value.trim() || null,
-      body_info: document.getElementById("char-body-info").value.trim() || null,
-      family_profile: document.getElementById("char-family-profile").value.trim() || null
+      hashtags: normalizeHashtags(document.getElementById("char-hashtags").value)
     };
 
     const file = croppedCharacterFile || document.getElementById("char-image").files[0];
