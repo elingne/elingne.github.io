@@ -37,7 +37,7 @@ function updateSpaHeader(route) {
   links.forEach(a => a.classList.remove("active"));
   const admin = document.getElementById("auth-link");
   if (admin) { admin.textContent = "ADMIN"; admin.href = "#/admin"; admin.onclick = null; }
-  const key = route.view === "character" ? "character" : route.view === "pair" ? "pair" : route.view === "admin" ? "admin" : (route.scroll || "main");
+  const key = route.view === "character" ? "character" : route.view === "pair" ? "pair" : route.view === "admin" ? "admin" : (route.scroll === "characters" ? "character" : route.scroll === "pairs" ? "pair" : "main");
   document.querySelector(`[data-nav="${key}"]`)?.classList.add("active");
 }
 
@@ -63,7 +63,11 @@ async function renderSpaRoute() {
   window.scrollTo({ top:0, behavior:"instant" });
 
   try {
-    if (route.view === "main") await runViewScript("app.js", token);
+    if (route.view === "main") {
+      window.__elingneMainReady = null;
+      await runViewScript("app.js", token);
+      await window.__elingneMainReady;
+    }
     if (route.view === "character") await runViewScript("character.js", token);
     if (route.view === "pair") await runViewScript("pair.js", token);
     if (route.view === "admin") await runViewScript("admin.js", token);
@@ -102,7 +106,11 @@ document.addEventListener("click", event => {
   if (!link || link.target === "_blank" || link.hasAttribute("download")) return;
   const href = link.getAttribute("href");
   if (!href) return;
-  if (href.startsWith("#/")) return; // native hashchange will route it
+  if (href.startsWith("#/")) {
+    event.preventDefault();
+    window.spaNavigate(href.slice(1));
+    return;
+  }
   const route = legacyHrefToRoute(href);
   if (!route) return;
   event.preventDefault();

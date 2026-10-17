@@ -205,7 +205,7 @@ document.getElementById("save-main-btn").addEventListener("click", async () => {
   }
 });
 
-(async function init(){
+window.__elingneMainReady = (async function init(){
   await initOwner();
   await Promise.all([loadMain(), loadCharacters(), loadPairs()]);
 })();
