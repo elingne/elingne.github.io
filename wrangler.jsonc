@@ -1,0 +1,36 @@
+{
+  "name": "elingne-home",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-17",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "elingne-db",
+      "database_id": "d74d3ae3-0b98-462d-9014-29faa74865b6"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "FILES",
+      "bucket_name": "elingne-files"
+    }
+  ],
+  "preview_urls": false,
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": false
+    }
+  },
+  "vars": {
+    "ACCESS_TEAM_DOMAIN": "noisy-sky-bed1.cloudflareaccess.com",
+    "ACCESS_AUD": "f3670619a603a4aa4f3a4e630cf6276b00fa052658327c15379934035219b55a",
+    "OWNER_EMAIL": "ielingkk@gmail.com"
+  }
+}
