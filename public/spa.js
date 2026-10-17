@@ -56,6 +56,7 @@ async function renderSpaRoute() {
     window.__elingneLegacyPairCreatePromise = null;
     window.__elingneLegacyPairCreateCooldownUntil = 0;
   }
+  document.title = 'elingne archive';
   updateSpaHeader(route);
   spaView.setAttribute("aria-busy", "true");
   spaView.innerHTML = SPA_TEMPLATES[route.view];
