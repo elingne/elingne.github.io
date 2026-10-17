@@ -3,6 +3,15 @@ const SPA_TEMPLATES = {"main": "<main>\n      <section class=\"hero hero-profile
 const spaView = document.getElementById("spa-view");
 let spaRenderToken = 0;
 let spaRenderQueue = Promise.resolve();
+let spaCurrentView = null;
+
+function scrollSpaRoute(route) {
+  if (route.scroll) {
+    document.getElementById(route.scroll)?.scrollIntoView({behavior:"instant", block:"start"});
+  } else {
+    window.scrollTo({top:0, behavior:"instant"});
+  }
+}
 
 function queueSpaRender() {
   spaRenderQueue = spaRenderQueue.then(() => renderSpaRoute()).catch(error => {
@@ -50,6 +59,12 @@ async function renderSpaRoute() {
   const token = ++spaRenderToken;
   const route = spaParseRoute();
   window.__SPA_ROUTE__ = route;
+  if (route.view === "main" && spaCurrentView === "main") {
+    document.title = "elingne archive";
+    updateSpaHeader(route);
+    scrollSpaRoute(route);
+    return;
+  }
   if (!(route.view === "pair" && route.pairNew) &&
       window.__elingneLegacyPairCreatePromise &&
       (!window.__elingneLegacyPairCreateCooldownUntil || Date.now() >= window.__elingneLegacyPairCreateCooldownUntil)) {
@@ -60,6 +75,7 @@ async function renderSpaRoute() {
   updateSpaHeader(route);
   spaView.setAttribute("aria-busy", "true");
   spaView.innerHTML = SPA_TEMPLATES[route.view];
+  spaCurrentView = route.view;
   window.scrollTo({ top:0, behavior:"instant" });
 
   try {
@@ -77,7 +93,7 @@ async function renderSpaRoute() {
   } finally {
     if (token === spaRenderToken) {
       spaView.setAttribute("aria-busy", "false");
-      if (route.scroll) requestAnimationFrame(() => document.getElementById(route.scroll)?.scrollIntoView({behavior:"smooth", block:"start"}));
+      if (route.scroll) requestAnimationFrame(() => scrollSpaRoute(route));
     }
   }
 }
