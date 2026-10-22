@@ -32,5 +32,8 @@
     "ACCESS_TEAM_DOMAIN": "noisy-sky-bed1.cloudflareaccess.com",
     "ACCESS_AUD": "f3670619a603a4aa4f3a4e630cf6276b00fa052658327c15379934035219b55a",
     "OWNER_EMAIL": "ielingkk@gmail.com"
+  },
+  "build": {
+    "command": "node scripts/check-home.mjs"
   }
 }
