@@ -7,6 +7,10 @@ const respond=(body,status=200,extra={})=>Response.json(body,{status,headers:{..
 const fail=(message,status=400)=>Object.assign(Error(message),{status});
 const idOK=x=>typeof x==='string'&&/^[0-9a-f-]{36}$/i.test(x);
 const quote=s=>'"'+s+'"';
+const cascades={
+ characters:[['profile_blocks','character_id'],['logs','character_id'],['gallery','character_id'],['post_images','character_id']],
+ pairs:[['pair_post_images','pair_id'],['pair_posts','pair_id'],['pair_profiles','pair_id'],['pair_intro_images','pair_id'],['pair_members','pair_id']]
+};
 const col=(t,c)=>{if(!columns[t]?.includes(c))throw fail('잘못된 항목입니다.');return quote(c);};
 const ownerCookie='__Host-elingne_owner';
 const grantName=(t,id)=>'__Host-elingne_'+t+'_'+id;
@@ -33,10 +37,14 @@ const refs=v=>{
  if(v&&typeof v==='object')return Object.values(v).flatMap(refs);
  const k=keyOf(v);return k?[k]:[];
 };
-function decodeRow(row){const r={...row};for(const k of ['hashtags','attachments'])if(typeof r[k]==='string')r[k]=JSON.parse(r[k]);return r;}
+function decodeRow(row){const r={...row};for(const k of ['hashtags','attachments'])if(typeof r[k]==='string'){try{r[k]=JSON.parse(r[k]);}catch{}}return r;}
+// Access decisions only need ids, parent links, lock flags and file references, so skip bodies and captions.
+const accessColumns=new Set(['id','character_id','pair_id','post_id','section','is_locked','image_url','profile_image_url','attachments']);
+const accessSelect=t=>columns[t].filter(c=>accessColumns.has(c)).map(quote).join(',');
+const accessTables=Object.keys(columns).filter(t=>columns[t].some(c=>['image_url','profile_image_url','attachments','is_locked'].includes(c)));
 async function snapshot(env){
- const tables=Object.keys(columns);
- const results=await env.DB.batch(tables.map(t=>env.DB.prepare('SELECT * FROM '+quote(t)+' LIMIT 10000')));
+ const tables=accessTables;
+ const results=await env.DB.batch(tables.map(t=>env.DB.prepare('SELECT '+accessSelect(t)+' FROM '+quote(t)+' LIMIT 10000')));
  return Object.fromEntries(tables.map((t,i)=>[t,results[i].results.map(decodeRow)]));
 }
 async function accessContext(request,env,owner){
@@ -54,16 +62,32 @@ function relatedPost(db,t,r){
  if(t==='pair_post_images'){const post=db.pair_posts.find(p=>p.id===r.post_id&&p.pair_id===r.pair_id);return post?{table:'pair_posts',row:post}:null;}
  return null;
 }
-function fileAllowed(db,key,ctx){
- let linked=false;let blocked=false;
- for(const [t,rows]of Object.entries(db))for(const row of rows){
-  if(!refs(row).includes(key))continue;
-  linked=true;
-  if(['logs','gallery','pair_posts'].includes(t)&&!canPost(ctx,t,row))blocked=true;
-  if(['post_images','pair_post_images'].includes(t)){const p=relatedPost(db,t,row);if(!p||!canPost(ctx,p.table,p.row))blocked=true;}
+const refIndexes=new WeakMap();
+function refIndex(db){
+ let index=refIndexes.get(db);
+ if(!index){
+  index=new Map();
+  for(const [t,rows]of Object.entries(db))for(const row of rows)for(const key of new Set(refs(row))){
+   const list=index.get(key);if(list)list.push({t,row});else index.set(key,[{t,row}]);
+  }
+  refIndexes.set(db,index);
  }
- return linked&&!blocked;
+ return index;
 }
+// allowed: the file is linked to content this visitor may see. locked: it belongs to a locked post.
+function fileAccess(db,key,ctx){
+ const entries=refIndex(db).get(key)||[];
+ let blocked=false,locked=false;
+ for(const {t,row}of entries){
+  if(['logs','gallery','pair_posts'].includes(t)){if(row.is_locked)locked=true;if(!canPost(ctx,t,row))blocked=true;}
+  if(['post_images','pair_post_images'].includes(t)){
+   const p=relatedPost(db,t,row);
+   if(!p)blocked=true;else{if(p.row.is_locked)locked=true;if(!canPost(ctx,p.table,p.row))blocked=true;}
+  }
+ }
+ return {allowed:entries.length>0&&!blocked,locked};
+}
+const fileAllowed=(db,key,ctx)=>fileAccess(db,key,ctx).allowed;
 function visible(db,t,rows,ctx){
  return rows.filter(r=>{if(ctx.owner)return true;if(['post_images','pair_post_images'].includes(t)){const p=relatedPost(db,t,r);return p&&canPost(ctx,p.table,p.row);}return true;}).map(row=>{
   const r=decodeRow(row);
@@ -108,14 +132,15 @@ async function validateRelations(env,t,r){
  }
  if(t==='pair_post_images'&&!await env.DB.prepare('SELECT id FROM pair_posts WHERE id=? AND pair_id=?').bind(r.post_id,r.pair_id).first())throw fail('연결할 페어 게시물을 찾을 수 없습니다.');
 }
-async function runQuery(q,env,ctx,db){
+async function runQuery(q,env,ctx,loadDb){
  const t=q.table;if(!Object.hasOwn(columns,t))throw fail('허용되지 않은 테이블입니다.');
  const w=whereQuery(t,q.filters);
  if(q.action==='select'){
   if(!Array.isArray(q.orders)||q.orders.length>5)throw fail('잘못된 정렬입니다.');
   const sort=q.orders.length?' ORDER BY '+q.orders.map(o=>col(t,o.column)+(o.ascending===false?' DESC':' ASC')).join(','):'';
   const result=await env.DB.prepare('SELECT * FROM '+quote(t)+w.sql+sort+' LIMIT 1000').bind(...w.args).all();
-  const rows=visible(db,t,result.results,ctx);
+  const needsDb=['post_images','pair_post_images'].includes(t)||result.results.some(r=>r.image_url||r.profile_image_url);
+  const rows=visible(needsDb?await loadDb():null,t,result.results,ctx);
   if(q.mode==='single'&&rows.length!==1)throw fail('기록을 찾을 수 없습니다.',404);
   return {data:q.mode?rows[0]||null:rows,error:null};
  }
@@ -143,6 +168,9 @@ async function runQuery(q,env,ctx,db){
   const targets=(await env.DB.prepare('SELECT * FROM '+quote(t)+w.sql).bind(...w.args).all()).results;
   const stmts=[];
   if(['profile_blocks','logs','gallery'].includes(t))for(const row of targets)stmts.push(env.DB.prepare('DELETE FROM post_images WHERE character_id=? AND section=? AND post_id=?').bind(row.character_id,{profile_blocks:'profile',logs:'log',gallery:'gallery'}[t],row.id));
+  if(t==='pair_posts')for(const row of targets)stmts.push(env.DB.prepare('DELETE FROM pair_post_images WHERE pair_id=? AND post_id=?').bind(row.pair_id,row.id));
+  // Deleting a character or pair also removes its rows (files stay in R2 for recovery).
+  for(const row of targets)for(const [child,column]of cascades[t]||[])stmts.push(env.DB.prepare('DELETE FROM '+quote(child)+' WHERE '+quote(column)+'=?').bind(row.id));
   stmts.push(env.DB.prepare('DELETE FROM '+quote(t)+w.sql).bind(...w.args));await env.DB.batch(stmts);return {data:null,error:null};
  }
  throw fail('허용되지 않은 요청입니다.');
@@ -179,7 +207,7 @@ export default {
    }
    if(url.pathname==='/api/query'&&request.method==='POST'){
     const raw=await request.text();if(raw.length>2000000)throw fail('요청이 너무 큽니다.',413);
-    return respond(await runQuery(JSON.parse(raw),env,ctx,await snapshot(env)));
+    return respond(await runQuery(JSON.parse(raw),env,ctx,()=>snapshot(env)));
    }
    if(url.pathname==='/api/pair-profile'&&request.method==='POST'){
     if(!owner)throw fail('소유자 로그인이 필요합니다.',403);
@@ -212,12 +240,15 @@ export default {
    if(url.pathname.startsWith('/files/')){
     if(!['GET','HEAD'].includes(request.method))throw fail('허용되지 않은 요청입니다.',405);
     const key=keyOf(url.pathname);if(!key)throw fail('파일을 찾을 수 없습니다.',404);
-    if(!ctx.owner&&!fileAllowed(await snapshot(env),key,ctx))throw fail('파일을 찾을 수 없습니다.',404);
+    let lockedFile=true;
+    if(!ctx.owner){const access=fileAccess(await snapshot(env),key,ctx);if(!access.allowed)throw fail('파일을 찾을 수 없습니다.',404);lockedFile=access.locked;}
     const obj=await env.FILES.get(key);if(!obj)throw fail('파일을 찾을 수 없습니다.',404);
     const mime=obj.httpMetadata?.contentType||'application/octet-stream';
     const safe=/^image\/(png|jpeg|gif|webp|avif)$/.test(mime)||/^(audio|video)\/[a-zA-Z0-9.+-]+$/.test(mime);
     const fh={...H,'Content-Type':safe?mime:'application/octet-stream','Content-Length':String(obj.size),'Content-Security-Policy':"default-src 'none'; sandbox"};
     if(!safe)fh['Content-Disposition']='attachment';
+    // Stored files never change (keys are write-once), so visitors may reuse files that are not part of a locked post.
+    if(!lockedFile)fh['Cache-Control']='private, max-age=300';
     if(request.method==='HEAD'){await obj.body.cancel();return new Response(null,{headers:fh});}
     return new Response(obj.body,{headers:fh});
    }
