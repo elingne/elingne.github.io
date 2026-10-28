@@ -13,9 +13,16 @@ function scrollSpaRoute(route) {
   }
 }
 
+// One navigation fires both hashchange and popstate; render each address once.
+let spaPendingHash = null;
 function queueSpaRender() {
+  const hash = location.hash;
+  if (spaPendingHash === hash) return spaRenderQueue;
+  spaPendingHash = hash;
   spaRenderQueue = spaRenderQueue.then(() => renderSpaRoute()).catch(error => {
     console.error("SPA render queue failed", error);
+  }).finally(() => {
+    if (spaPendingHash === hash) spaPendingHash = null;
   });
   return spaRenderQueue;
 }
