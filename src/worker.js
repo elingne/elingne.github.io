@@ -15,7 +15,6 @@ const col=(t,c)=>{if(!columns[t]?.includes(c))throw fail('잘못된 항목입니
 const ownerCookie='__Host-elingne_owner';
 const grantName=(t,id)=>'__Host-elingne_'+t+'_'+id;
 const cookies=req=>Object.fromEntries((req.headers.get('Cookie')||'').split(';').map(x=>x.trim().split('=')));
-function publicConfig(){return {authentication:'cloudflare-access'};}
 export function keyOf(value){
  if(typeof value!=='string')return null;
  try{
@@ -179,7 +178,6 @@ export default {
  async fetch(request,bindings,execution){
   const env={...bindings,...authConfig};const url=new URL(request.url);
   try{
-   if(url.pathname==='/api/config'&&request.method==='GET')return respond(publicConfig());
    if(!['GET','HEAD'].includes(request.method)&&request.headers.get('Origin')!==url.origin)throw fail('요청 출처가 올바르지 않습니다.',403);
    let owner=null;
    const ownerGrant=await readGrant(env,cookies(request)[ownerCookie],'owner');

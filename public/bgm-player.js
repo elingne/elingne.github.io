@@ -14,33 +14,6 @@ function bgmEsc(value = "") {
   })[m]);
 }
 
-function ensureBgmPanel() {
-  if (document.getElementById("bgm-panel")) return;
-  const panel = document.createElement("aside");
-  panel.id = "bgm-panel";
-  panel.className = "bgm-panel";
-  panel.setAttribute("aria-label", "BGM 플레이리스트");
-  panel.innerHTML = `
-    <div class="bgm-heading">
-      <div>
-        <p class="eyebrow">YOUTUBE BGM</p>
-        <h2>PLAYLIST</h2>
-      </div>
-      <span id="bgm-state" class="bgm-state">준비 중</span>
-    </div>
-    <div id="youtube-player" class="youtube-player"></div>
-    <div class="bgm-controls">
-      <button id="bgm-toggle" type="button" class="bgm-control" aria-label="재생">▶</button>
-      <label class="bgm-volume">VOL
-        <input id="bgm-volume" type="range" min="0" max="100" value="45" aria-label="BGM 볼륨" />
-      </label>
-    </div>
-    <p id="bgm-now" class="bgm-now">재생할 곡을 불러오는 중...</p>
-    <div id="bgm-list" class="bgm-list"></div>
-    <p id="bgm-note" class="bgm-note hidden">브라우저가 소리 자동재생을 막았어요. ▶ 버튼을 한 번 눌러주세요.</p>`;
-  document.body.appendChild(panel);
-}
-
 function readBgmState() {
   try { return JSON.parse(sessionStorage.getItem(BGM_STATE_KEY) || "null"); }
   catch { return null; }
@@ -206,7 +179,6 @@ function createBgmPlayer() {
 
 window.onYouTubeIframeAPIReady = createBgmPlayer;
 
-ensureBgmPanel();
 document.getElementById("bgm-toggle")?.addEventListener("click", () => {
   if (!bgmPlayerReady || !bgmPlayer || !bgmTracks.length) return;
   const state = bgmPlayer.getPlayerState();
