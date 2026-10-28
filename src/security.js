@@ -1,5 +1,4 @@
 const encoder=new TextEncoder();
-const OWNER_ID='cbc6e7d4-0aa8-4e9d-ac08-f8c4b1571772';
 const toBase64=bytes=>btoa(String.fromCharCode(...new Uint8Array(bytes))).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
 const fromBase64=s=>Uint8Array.from(atob(s.replaceAll('-','+').replaceAll('_','/')),c=>c.charCodeAt(0));
 async function signingKey(env){

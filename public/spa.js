@@ -79,17 +79,18 @@ async function renderSpaRoute() {
   window.scrollTo({ top:0, behavior:"instant" });
 
   try {
-    if (route.view === "main") {
-      window.__elingneMainReady = null;
-      await runViewScript("app.js", token);
-      await window.__elingneMainReady;
-    }
+    if (route.view === "main") await runViewScript("app.js", token);
     if (route.view === "character") await runViewScript("character.js", token);
     if (route.view === "pair") await runViewScript("pair.js", token);
     if (route.view === "admin") await runViewScript("admin.js", token);
   } catch (error) {
     console.error("SPA view init failed", error);
-    if (token === spaRenderToken) spaView.insertAdjacentHTML("afterbegin", `<p class="spa-error">화면을 불러오는 중 오류가 발생했습니다: ${String(error.message || error)}</p>`);
+    if (token === spaRenderToken) {
+      const notice = document.createElement("p");
+      notice.className = "spa-error";
+      notice.textContent = `화면을 불러오는 중 오류가 발생했습니다: ${String(error.message || error)}`;
+      spaView.prepend(notice);
+    }
   } finally {
     if (token === spaRenderToken) {
       spaView.setAttribute("aria-busy", "false");

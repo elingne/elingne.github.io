@@ -66,7 +66,7 @@ async function loadCharacters() {
     return;
   }
   grid.innerHTML = data?.length ? data.map(c => `
-    <a class="character-card ${c.coupling_name ? "has-coupling" : ""}" href="character.html?id=${c.id}">
+    <a class="character-card ${c.coupling_name ? "has-coupling" : ""}" href="#/character/${encodeURIComponent(c.id)}">
       ${c.coupling_name ? `<span class="coupling-card-badge" title="커플링: ${esc(c.coupling_name)}" aria-label="커플링 있음">♥</span>` : ""}
       <img src="${c.image_url || ""}" alt="${esc(c.name)}">
       <div class="card-body">
@@ -98,7 +98,7 @@ async function loadPairs() {
   grid.innerHTML = pairs.map(pair => {
     const ps = (profiles || []).filter(x => x.pair_id === pair.id).slice(0,8);
     return `
-      <a class="pair-card" href="pair.html?id=${pair.id}">
+      <a class="pair-card" href="#/pair/${encodeURIComponent(pair.id)}">
         <div class="pair-thumbs">
           ${ps.map(p => `<img src="${p.image_url || ""}" alt="${esc(p.name || "")}">`).join("")}
         </div>

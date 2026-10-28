@@ -563,7 +563,6 @@ document.getElementById("edit-image-picker").addEventListener("change", e => {
   for (const file of Array.from(e.target.files || [])) { const item={uid:crypto.randomUUID(),file,caption:"",preview:URL.createObjectURL(file)}; selectedNewFiles.push(item); mixedImageOrder.push({type:"new",uid:item.uid}); }
   e.target.value=""; renderMixedImageEditor();
 });
-function renderPendingImages(){ renderMixedImageEditor(); }
 function renderMixedImageEditor(){
   const wrap=document.getElementById("existing-images-wrap"), box=document.getElementById("existing-image-list"), old=document.getElementById("new-image-caption-list"); if(old) old.innerHTML="";
   if(!mixedImageOrder.length){wrap?.classList.add("hidden"); if(box) box.innerHTML=""; return;} wrap?.classList.remove("hidden");
@@ -576,7 +575,6 @@ function renderMixedImageEditor(){
 }
 function enableImageDrag(container,onReorder){if(!container)return;let dragged=null;container.querySelectorAll(".draggable-image-row").forEach(row=>{row.addEventListener("dragstart",e=>{dragged=row;row.classList.add("dragging");if(e.dataTransfer)e.dataTransfer.effectAllowed="move";});row.addEventListener("dragend",()=>{row.classList.remove("dragging");dragged=null;onReorder?.();});row.addEventListener("dragover",e=>{e.preventDefault();if(!dragged||dragged===row)return;const r=row.getBoundingClientRect(),after=e.clientY>r.top+r.height/2;container.insertBefore(dragged,after?row.nextSibling:row);});});}
 function syncMixedImageOrderFromDom(){mixedImageOrder=[...document.querySelectorAll("#existing-image-list [data-token]")].map(row=>row.dataset.token.startsWith("e:")?{type:"existing",id:row.dataset.token.slice(2)}:{type:"new",uid:row.dataset.token.slice(2)});}
-function syncPendingImageOrderFromDom(){syncMixedImageOrderFromDom();}
 async function saveExistingImageOrder(){syncMixedImageOrderFromDom();for(let i=0;i<mixedImageOrder.length;i++)if(mixedImageOrder[i].type==="existing"){const{error}=await db.from("post_images").update({sort_order:i}).eq("id",mixedImageOrder[i].id);if(error)throw error;}}
 async function saveExistingImageEdits(){for(const input of document.querySelectorAll("#existing-image-list .existing-caption")){const{error}=await db.from("post_images").update({caption:input.value}).eq("id",input.dataset.id);if(error)throw error;}}
 async function saveNewImages(kind,postId,sortOffset=0){syncMixedImageOrderFromDom();for(let i=0;i<mixedImageOrder.length;i++){const token=mixedImageOrder[i];if(token.type!=="new")continue;const item=selectedNewFiles.find(x=>x.uid===token.uid);if(!item)continue;const uploaded=await uploadImage(item.file,`${kind}/${postId}`);const{error}=await db.from("post_images").insert({character_id:characterId,section:kind,post_id:postId,image_url:uploaded.url,caption:item.caption||"",sort_order:i});if(error){await db.storage.from("gallery").remove([uploaded.path]);throw error;}}}
