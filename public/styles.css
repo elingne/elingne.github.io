@@ -1983,3 +1983,5 @@ button:disabled {
 
 /* v36 couple pair cards on main: light pink */
 .pair-card.couple { background: #fff5f9; border-color: var(--pink); }
+
+.pair-card.couple { position: relative; }

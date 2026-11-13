@@ -101,6 +101,7 @@ async function loadPairs() {
     const ps = (profiles || []).filter(x => x.pair_id === pair.id).slice(0,8);
     return `
       <a class="pair-card ${pair.is_couple ? "couple" : ""}" href="#/pair/${encodeURIComponent(pair.id)}">
+        ${pair.is_couple ? `<span class="coupling-card-badge" title="커플" aria-label="커플 페어">♥</span>` : ""}
         <div class="pair-thumbs">
           ${ps.map(p => `<img src="${p.image_url || ""}" alt="${esc(p.name || "")}">`).join("")}
         </div>
