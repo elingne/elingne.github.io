@@ -131,8 +131,17 @@ async function validateRelations(env,t,r){
  }
  if(t==='pair_post_images'&&!await env.DB.prepare('SELECT id FROM pair_posts WHERE id=? AND pair_id=?').bind(r.post_id,r.pair_id).first())throw fail('연결할 페어 게시물을 찾을 수 없습니다.');
 }
+// Additive, data-preserving: adds pairs.is_couple on first pair write if the column does not exist yet.
+let pairCoupleColumn=null;
+function ensurePairCoupleColumn(env){
+ return pairCoupleColumn||=(async()=>{
+  const info=await env.DB.prepare("PRAGMA table_info('pairs')").all();
+  if(!info.results.some(c=>c.name==='is_couple'))await env.DB.prepare('ALTER TABLE pairs ADD COLUMN is_couple INTEGER NOT NULL DEFAULT 0').run();
+ })().catch(e=>{pairCoupleColumn=null;throw e;});
+}
 async function runQuery(q,env,ctx,loadDb){
  const t=q.table;if(!Object.hasOwn(columns,t))throw fail('허용되지 않은 테이블입니다.');
+ if(t==='pairs'&&q.action!=='select'&&q.action!=='delete')await ensurePairCoupleColumn(env);
  const w=whereQuery(t,q.filters);
  if(q.action==='select'){
   if(!Array.isArray(q.orders)||q.orders.length>5)throw fail('잘못된 정렬입니다.');

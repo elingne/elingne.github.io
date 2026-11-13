@@ -1973,3 +1973,10 @@ button:disabled {
 
 /* v34 pair member intro text: small gray */
 .pair-member-copy .post-body { font-size: .78rem; line-height: 1.6; color: #7b7a88; }
+
+/* v35 couple pairs: pink card / list item, listed first */
+.entity-chip.couple { background: var(--pink-soft); border-color: var(--pink); }
+.entity-chip.couple.active { background: linear-gradient(135deg, #ffe3ef, var(--pink)); border-color: var(--pink-deep); }
+.pair-head.couple { background: linear-gradient(135deg, #fff1f6, #ffe3ef); border-color: var(--pink); }
+.pair-head.couple .eyebrow { color: #b5527f; }
+.coupling-add-btn.on { background: var(--pink-soft); border-color: var(--pink); color: #8f3a62; font-weight: 700; }

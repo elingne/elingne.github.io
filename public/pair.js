@@ -278,7 +278,7 @@ async function loadStrip() {
   let list = window.__elingnePairList;
   const draw = () => {
     strip.innerHTML = (list || []).map(x => `
-      <a class="entity-chip ${x.id === pairId ? "active" : ""}" href="#/pair/${encodeURIComponent(x.id)}" ${x.id === pairId ? 'aria-current="page"' : ""}>
+      <a class="entity-chip ${x.couple ? "couple" : ""} ${x.id === pairId ? "active" : ""}" href="#/pair/${encodeURIComponent(x.id)}" ${x.id === pairId ? 'aria-current="page"' : ""}>
         <span class="entity-chip-faces" aria-hidden="true">${(x.faces || []).slice(0, 3).map(f => f ? `<img src="${esc(f)}" alt="">` : `<span class="entity-chip-ph"></span>`).join("")}</span>
         <span class="entity-chip-name">${esc(x.name || "이름 없음")}</span>
       </a>`).join("") + (isOwner ? `<a class="entity-chip entity-chip-add" href="#/pair/new">+ 새 페어</a>` : "");
@@ -291,8 +291,8 @@ async function loadStrip() {
   const { data: pairs } = await db.from("pairs").select("id,name");
   const ids = (pairs || []).map(x => x.id);
   const { data: profs } = ids.length ? await db.from("pair_profiles").select("pair_id,image_url,sort_order").in("pair_id", ids).order("sort_order") : { data: [] };
-  list = (pairs || []).map(x => ({ id:x.id, name:x.name, faces:(profs || []).filter(f => f.pair_id === x.id).map(f => f.image_url || "") }))
-    .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "ko"));
+  list = (pairs || []).map(x => ({ id:x.id, name:x.name, couple:!!x.is_couple, faces:(profs || []).filter(f => f.pair_id === x.id).map(f => f.image_url || "") }))
+    .sort((a, b) => (Number(b.couple) - Number(a.couple)) || String(a.name || "").localeCompare(String(b.name || ""), "ko"));
   window.__elingnePairList = list;
   if (!pairId && list.length) {
     pairId = list[0].id;
@@ -322,6 +322,10 @@ async function loadPair() {
 function renderPair() {
   if (!pair) return;
   document.getElementById("pair-name").textContent = pair.name;
+  const head = document.querySelector(".pair-head");
+  head?.classList.toggle("couple", !!pair.is_couple);
+  const eyebrow = head?.querySelector(".eyebrow");
+  if (eyebrow) eyebrow.textContent = pair.is_couple ? "PAIR - 커플" : "PAIR";
   document.getElementById("pair-summary").textContent = pair.summary || "";
 
   const av = document.getElementById("pair-avatars");
@@ -546,21 +550,36 @@ document.getElementById("delete-member-btn").addEventListener("click", async () 
   } catch (err) { document.getElementById("profile-edit-msg").textContent = err.message || "삭제하지 못했어요."; }
 });
 
+let editCouple = false;
+function syncCoupleButton() {
+  const btn = document.getElementById("toggle-couple-btn");
+  btn.setAttribute("aria-pressed", String(editCouple));
+  btn.classList.toggle("on", editCouple);
+  btn.textContent = editCouple ? "♥ 커플 (누르면 해제)" : "♥ 커플로 설정하기";
+}
+document.getElementById("toggle-couple-btn").addEventListener("click", () => { editCouple = !editCouple; syncCoupleButton(); });
+
 document.getElementById("edit-pair-btn").addEventListener("click", () => {
   document.getElementById("pair-edit-name").value = pair?.name || "";
   document.getElementById("pair-edit-summary").value = pair?.summary || "";
+  editCouple = !!pair?.is_couple;
+  syncCoupleButton();
+  document.getElementById("pair-edit-msg").textContent = "";
   pairDialog.showModal();
 });
 
 document.getElementById("save-pair-btn").addEventListener("click", async () => {
   const { error } = await db.from("pairs").update({
     name: document.getElementById("pair-edit-name").value.trim() || "PAIR",
-    summary: document.getElementById("pair-edit-summary").value.trim()
+    summary: document.getElementById("pair-edit-summary").value.trim(),
+    is_couple: editCouple ? 1 : 0
   }).eq("id", pairId);
 
   if (error) return document.getElementById("pair-edit-msg").textContent = error.message;
   pairDialog.close();
-  loadPair();
+  await loadPair();
+  window.__elingnePairList = null;
+  loadStrip();
 });
 
 document.getElementById("delete-pair-btn").addEventListener("click", async () => {
