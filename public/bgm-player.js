@@ -209,3 +209,19 @@ loadBgmTracks();
 
 // The API might already be available when this script runs from cache.
 if (window.YT?.Player) createBgmPlayer();
+
+// Mobile: the playlist panel starts folded so pages are not pushed down by the player.
+(() => {
+  const panel = document.getElementById("bgm-panel");
+  const btn = document.getElementById("bgm-fold");
+  if (!panel || !btn) return;
+  const mq = window.matchMedia("(max-width: 1023px)");
+  const set = folded => {
+    panel.classList.toggle("bgm-folded", folded);
+    btn.setAttribute("aria-expanded", String(!folded));
+    btn.textContent = folded ? "펼치기" : "접기";
+  };
+  set(mq.matches);
+  btn.addEventListener("click", () => set(!panel.classList.contains("bgm-folded")));
+  mq.addEventListener?.("change", e => set(e.matches));
+})();
