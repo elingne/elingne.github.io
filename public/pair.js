@@ -204,16 +204,6 @@ async function checkOwner() {
   document.querySelectorAll(".owner-only").forEach(x => x.classList.toggle("hidden", !isOwner));
   document.getElementById("owner-pair-tools").classList.toggle("hidden", !isOwner);
 
-  const link = document.getElementById("auth-link");
-  if (isOwner) {
-    link.textContent = "LOGOUT";
-    link.href = "#";
-    link.onclick = async e => {
-      e.preventDefault();
-      await db.auth.signOut();
-      window.spaNavigate("/pairs");
-    };
-  }
 }
 
 async function uploadImage(file, folder) {
