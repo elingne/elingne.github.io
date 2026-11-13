@@ -1860,3 +1860,42 @@ button:disabled {
   .spa-body .character-page:has(> .pair-head) { grid-template-columns: minmax(0, 1fr); }
   .spa-body .character-page:has(> .pair-head) > * { grid-column: 1; }
 }
+
+/* v31 entity strip: small cards in one row on top of CHARACTER / PAIR tabs */
+.entity-strip {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 16px; padding: 2px 2px 8px;
+  overflow-x: auto; scrollbar-width: thin; white-space: nowrap;
+}
+.entity-chip {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 14px 5px 5px; border: 1px solid var(--line); border-radius: 999px;
+  background: #fff; color: var(--text); font-size: .82rem; cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.entity-chip:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(66,62,92,.07); border-color: rgba(223,143,180,.4); }
+.entity-chip.active { background: linear-gradient(135deg, var(--pink-soft), var(--sky-soft)); border-color: var(--pink); font-weight: 700; }
+.entity-chip img, .entity-chip-ph {
+  width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex: 0 0 auto;
+  background: linear-gradient(135deg, var(--pink), var(--sky));
+}
+.entity-chip-faces { display: inline-flex; }
+.entity-chip-faces > * { border: 2px solid #fff; box-sizing: content-box; width: 26px; height: 26px; }
+.entity-chip-faces > * + * { margin-left: -10px; }
+.entity-chip-heart { color: var(--pink-deep); font-size: .75rem; }
+.entity-chip-add { padding: 8px 14px; border-style: dashed; color: #6f6e7b; background: transparent; }
+
+/* small profile post cards */
+.compact-card-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; gap: 12px !important; }
+.compact-card-grid .post-card-thumb { aspect-ratio: 1 / .85; }
+.compact-card-grid .post-card-copy { padding: 10px 12px 12px; }
+.compact-card-grid .post-card-copy h3 { font-size: .9rem; margin-bottom: 3px; }
+.compact-card-grid .post-card-copy > p:last-child { font-size: .76rem; -webkit-line-clamp: 1; }
+
+@media (min-width: 1024px) {
+  .spa-body .character-page > .entity-strip { grid-column: 1 / -1; grid-row: 1; }
+  .spa-body .character-page > .character-head { grid-row: 2 / span 8; }
+}
+.tab-panel { white-space: normal; }
+@media (min-width: 1024px) {
+  .spa-body .pair-member-grid { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
+}

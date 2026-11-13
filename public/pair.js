@@ -276,6 +276,33 @@ async function createPairIfNeeded() {
   }
 }
 
+async function loadStrip() {
+  const strip = document.getElementById("entity-strip");
+  if (!strip) return;
+  let list = window.__elingnePairList;
+  const draw = () => {
+    strip.innerHTML = (list || []).map(x => `
+      <a class="entity-chip ${x.id === pairId ? "active" : ""}" href="#/pair/${encodeURIComponent(x.id)}" ${x.id === pairId ? 'aria-current="page"' : ""}>
+        <span class="entity-chip-faces" aria-hidden="true">${(x.faces || []).slice(0, 3).map(f => f ? `<img src="${esc(f)}" alt="">` : `<span class="entity-chip-ph"></span>`).join("")}</span>
+        <span class="entity-chip-name">${esc(x.name || "이름 없음")}</span>
+      </a>`).join("") + (isOwner ? `<a class="entity-chip entity-chip-add" href="#/pair/new">+ 새 페어</a>` : "");
+    const active = strip.querySelector(".entity-chip.active");
+    if (active) strip.scrollLeft = Math.max(0, active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2);
+  };
+  if (list) draw();
+  const { data: pairs } = await db.from("pairs").select("id,name");
+  const ids = (pairs || []).map(x => x.id);
+  const { data: profs } = ids.length ? await db.from("pair_profiles").select("pair_id,image_url,sort_order").in("pair_id", ids).order("sort_order") : { data: [] };
+  list = (pairs || []).map(x => ({ id:x.id, name:x.name, faces:(profs || []).filter(f => f.pair_id === x.id).map(f => f.image_url || "") }))
+    .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "ko"));
+  window.__elingnePairList = list;
+  if (!pairId && list.length) {
+    pairId = list[0].id;
+    history.replaceState(null, "", `#/pair/${encodeURIComponent(pairId)}`);
+  }
+  draw();
+}
+
 async function loadPair() {
   if (!pairId) return;
 
@@ -748,7 +775,9 @@ ensureLockEditorUI();
 (async function init(){
   await checkOwner();
   await createPairIfNeeded();
+  if (!newMode) await loadStrip();
   if (pairId) await loadPair();
+  else if (!newMode) document.getElementById("pair-name").textContent = "등록된 페어가 없습니다.";
 })();
 
 }

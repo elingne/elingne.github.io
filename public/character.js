@@ -2,7 +2,7 @@
 const __elingneViewRoot = document.querySelector(".character-page");
 if (__elingneViewRoot && __elingneViewRoot.dataset.__elingne_character_initialized !== "1") {
   __elingneViewRoot.dataset.__elingne_character_initialized = "1";
-const characterId = window.__SPA_ROUTE__?.characterId || new URLSearchParams(location.search).get("id");
+let characterId = window.__SPA_ROUTE__?.characterId || new URLSearchParams(location.search).get("id");
 
 let isOwner = false;
 let character = null;
@@ -10,6 +10,7 @@ let profilePosts = [];
 let logs = [];
 let galleryPosts = [];
 let postImages = [];
+let legacyProfilePost = null;
 
 let selectedNewFiles = [];
 let mixedImageOrder = [];
@@ -302,6 +303,37 @@ function postTools(section, id) {
   </div>`;
 }
 
+async function loadStrip() {
+  const strip = document.getElementById("entity-strip");
+  let list = window.__elingneCharList;
+  const draw = () => {
+    if (!strip) return;
+    strip.innerHTML = (list || []).map(c => `
+      <a class="entity-chip ${c.id === characterId ? "active" : ""}" href="#/character/${encodeURIComponent(c.id)}" ${c.id === characterId ? 'aria-current="page"' : ""}>
+        ${c.image_url ? `<img src="${esc(c.image_url)}" alt="">` : `<span class="entity-chip-ph" aria-hidden="true"></span>`}
+        <span class="entity-chip-name">${esc(c.name || "이름 없음")}</span>${c.coupling_name ? `<span class="entity-chip-heart" aria-label="커플링 있음">♥</span>` : ""}
+      </a>`).join("") + (isOwner ? `<button type="button" id="strip-new-character" class="entity-chip entity-chip-add">+ 새 캐릭터</button>` : "");
+    document.getElementById("strip-new-character")?.addEventListener("click", async e => {
+      e.currentTarget.disabled = true;
+      const { data, error } = await db.from("characters").insert({ name:"새 캐릭터", summary:"", profile:"" }).select().single();
+      if (error) { e.currentTarget.disabled = false; return alert(error.message); }
+      window.__elingneCharList = null;
+      window.spaNavigate(`/character/${data.id}`);
+    });
+    const active = strip.querySelector(".entity-chip.active");
+    if (active) strip.scrollLeft = Math.max(0, active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2);
+  };
+  if (list) draw();
+  const { data } = await db.from("characters").select("id,name,image_url,coupling_name");
+  list = (data || []).slice().sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "ko"));
+  window.__elingneCharList = list;
+  if (!characterId && list.length) {
+    characterId = list[0].id;
+    history.replaceState(null, "", `#/character/${encodeURIComponent(characterId)}`);
+  }
+  draw();
+}
+
 async function loadAll() {
   if (!characterId) return;
 
@@ -347,34 +379,21 @@ function renderHead() {
 
 function renderProfile() {
   const feed = document.getElementById("profile-feed");
+  feed.classList.add("post-card-grid", "compact-card-grid");
 
   if (!profilePosts.length && character?.profile) {
-    feed.innerHTML = `
-      <article class="feed-post">
-        <div class="post-body">${esc(character.profile).replace(/\n/g,"<br>")}</div>
-      </article>
-      ${isOwner ? `<p class="muted">기존 프로필 텍스트입니다. 새 게시물 방식으로 새 내용을 추가할 수 있습니다.</p>` : ""}
-    `;
+    legacyProfilePost = { id:"__legacy", title:"프로필", body:character.profile, created_at:character.created_at || new Date().toISOString() };
+    feed.innerHTML = renderPostCard("profile", legacyProfilePost);
+    bindPostCards();
     return;
   }
 
+  legacyProfilePost = null;
   feed.innerHTML = profilePosts.length
-    ? profilePosts.map(p => `
-        <article class="feed-post">
-          ${postTools("profile", p.id)}
-          ${p.title ? `<h3>${esc(p.title)}</h3>` : ""}
-          ${p.body ? `<div class="post-body">${esc(p.body).replace(/\n/g,"<br>")}</div>` : ""}
-          ${renderImages("profile", p.id)}
-          ${p.image_url ? `
-            <figure class="legacy-image">
-              <img src="${p.image_url}" alt="${esc(p.caption || "")}">
-              ${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ""}
-            </figure>` : ""}
-        </article>
-      `).join("")
+    ? profilePosts.map(p => renderPostCard("profile", p)).join("")
     : `<p class="muted">등록된 프로필 게시물이 없습니다.</p>`;
 
-  bindEditButtons();
+  bindPostCards();
 }
 
 function renderLogs() {
@@ -410,13 +429,13 @@ function firstPostImage(kind, post) {
 function renderPostCard(kind, post) {
   const thumb = firstPostImage(kind, post);
   const locked = !!post.is_locked;
-  const title = locked ? "잠긴 게시물" : (post.title || (kind === "log" ? "LOG" : "GALLERY"));
+  const title = locked ? "잠긴 게시물" : (post.title || (kind === "log" ? "LOG" : kind === "profile" ? "PROFILE" : "GALLERY"));
   const bodyText = locked ? "비밀번호를 입력하면 내용을 볼 수 있어요." : (post.body || post.caption || "").replace(/\n/g, " ").trim();
 
   return `
     <article class="post-card open-post-card ${locked ? "locked" : ""}" data-kind="${kind}" data-id="${post.id}" tabindex="0" aria-label="${locked ? "잠긴 게시물" : esc(title)}">
       <div class="post-card-thumb ${thumb ? "" : "no-image"}">
-        ${thumb ? `<img src="${thumb}" alt="">` : `<span>${kind === "log" ? "LOG" : "IMAGE"}</span>`}
+        ${thumb ? `<img src="${thumb}" alt="">` : `<span>${kind === "log" ? "LOG" : kind === "profile" ? "PROFILE" : "IMAGE"}</span>`}
         ${locked ? `<span class="post-lock-overlay" aria-hidden="true">🔒</span>` : ""}
       </div>
       <div class="post-card-copy">
@@ -441,16 +460,14 @@ function bindPostCards() {
 }
 
 async function openPostViewer(kind, id) {
-  const post = kind === "log"
-    ? logs.find(x => x.id === id)
-    : galleryPosts.find(x => x.id === id);
+  const post = id === "__legacy" ? legacyProfilePost : findPost(kind, id);
 
   if (!post) return;
   if (!(await requestPostUnlock(post))) return;
 
   document.getElementById("post-view-kind").textContent = kind.toUpperCase();
   document.getElementById("post-view-title").textContent =
-    post.title || (kind === "log" ? "LOG" : "GALLERY");
+    post.title || (kind === "log" ? "LOG" : kind === "profile" ? "PROFILE" : "GALLERY");
   document.getElementById("post-view-date").textContent =
     new Date(post.created_at).toLocaleDateString("ko-KR");
   document.getElementById("post-view-body").innerHTML =
@@ -472,7 +489,7 @@ async function openPostViewer(kind, id) {
   document.getElementById("post-view-files").innerHTML = attachmentViewerHtml(post);
 
   const tools = document.getElementById("post-view-owner-tools");
-  tools.classList.toggle("hidden", !isOwner);
+  tools.classList.toggle("hidden", !isOwner || id === "__legacy");
   document.getElementById("post-view-edit-btn").onclick = () => {
     document.getElementById("post-view-dialog").close();
     openEditor(kind, id);
@@ -831,6 +848,11 @@ ensureLockEditorUI();
 
 (async function init(){
   await checkOwner();
+  await loadStrip();
+  if (!characterId) {
+    document.getElementById("character-head").innerHTML = "<p class=\"muted\">등록된 캐릭터가 없습니다.</p>";
+    return;
+  }
   await loadAll();
 })();
 
