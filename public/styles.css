@@ -1982,6 +1982,6 @@ button:disabled {
 .coupling-add-btn.on { background: var(--pink-soft); border-color: var(--pink); color: #8f3a62; font-weight: 700; }
 
 /* v36 couple pair cards on main: light pink */
-.pair-card.couple { background: #fff5f9; border-color: var(--pink); }
+.pair-card.couple { background: #ffecf3; border-color: var(--pink); }
 
 .pair-card.couple { position: relative; }
