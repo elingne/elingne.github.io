@@ -1884,13 +1884,6 @@ button:disabled {
 .entity-chip-heart { color: var(--pink-deep); font-size: .75rem; }
 .entity-chip-add { padding: 8px 14px; border-style: dashed; color: #6f6e7b; background: transparent; }
 
-/* small profile post cards */
-.compact-card-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; gap: 12px !important; }
-.compact-card-grid .post-card-thumb { aspect-ratio: 1 / .85; }
-.compact-card-grid .post-card-copy { padding: 10px 12px 12px; }
-.compact-card-grid .post-card-copy h3 { font-size: .9rem; margin-bottom: 3px; }
-.compact-card-grid .post-card-copy > p:last-child { font-size: .76rem; -webkit-line-clamp: 1; }
-
 @media (min-width: 1024px) {
   .spa-body .character-page > .entity-strip { grid-column: 1 / -1; grid-row: 1; }
   .spa-body .character-page > .character-head { grid-row: 2 / span 8; }
@@ -1951,3 +1944,17 @@ button:disabled {
 .pair-member-card { background-color: #fff; background-image: none; }
 .pair-member-card img { background-color: transparent; background-image: none; }
 .pair-member-ph { background-image: linear-gradient(135deg, var(--pink), var(--sky)); }
+
+/* v33 pair member cards: click to edit, hover blank slot to add */
+.pair-member-card.editable { position: relative; cursor: pointer; transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+.pair-member-card.editable:hover, .pair-member-card.editable:focus-visible { transform: translateY(-2px); border-color: var(--pink); box-shadow: var(--shadow); }
+.pair-member-card.editable::after { content: "✎ 편집"; position: absolute; top: 10px; right: 14px; font-size: .7rem; color: #6f6e7b; opacity: 0; transition: opacity .15s ease; }
+.pair-member-card.editable:hover::after, .pair-member-card.editable:focus-visible::after { opacity: 1; }
+.pair-member-add {
+  min-height: 134px; display: grid; place-items: center; font: inherit; font-size: .85rem; cursor: pointer;
+  border: 1.5px dashed transparent; border-radius: var(--radius-md); background: transparent; color: transparent;
+  transition: border-color .15s ease, background .15s ease, color .15s ease;
+}
+.pair-member-add:hover, .pair-member-add:focus-visible { border-color: var(--pink); background: var(--pink-soft); color: #6f6e7b; }
+@media (hover: none) { .pair-member-add { border-color: var(--line); color: #6f6e7b; } }
+#member-preview:empty { display: none; }

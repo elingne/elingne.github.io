@@ -11,15 +11,11 @@ let pair = null;
 let profiles = [];
 let posts = [];
 let images = [];
-let introImages = [];
-let editIntroItems = [];
-let removedIntroPaths = [];
 let selectedPostFiles = [];
 let mixedPairImageOrder = [];
 let pairEditorAttachments = [];
 let pairRemovedAttachmentPaths = [];
 let postSaving = false;
-let editProfileRows = [];
 
 const profileDialog = document.getElementById("profile-dialog");
 const pairDialog = document.getElementById("pair-dialog");
@@ -306,19 +302,17 @@ async function loadStrip() {
 async function loadPair() {
   if (!pairId) return;
 
-  const [pairRes, profileRes, postRes, imageRes, introImageRes] = await Promise.all([
+  const [pairRes, profileRes, postRes, imageRes] = await Promise.all([
     db.from("pairs").select("*").eq("id", pairId).single(),
     db.from("pair_profiles").select("*").eq("pair_id", pairId).order("sort_order"),
     db.from("pair_posts").select("*").eq("pair_id", pairId).order("created_at", {ascending:false}),
-    db.from("pair_post_images").select("*").eq("pair_id", pairId).order("sort_order").order("created_at"),
-    db.from("pair_intro_images").select("*").eq("pair_id", pairId).order("sort_order")
+    db.from("pair_post_images").select("*").eq("pair_id", pairId).order("sort_order").order("created_at")
   ]);
 
   pair = pairRes.data;
   profiles = profileRes.data || [];
   posts = postRes.data || [];
   images = imageRes.data || [];
-  introImages = introImageRes.data || [];
 
   renderPair();
 }
@@ -331,8 +325,9 @@ function renderPair() {
   const av = document.getElementById("pair-avatars");
   if (av) av.innerHTML = profiles.slice(0, 3).map(p => p.image_url ? `<img src="${esc(p.image_url)}" alt="">` : `<span class="pair-avatar-ph"></span>`).join("");
 
-  document.getElementById("pair-profile-grid").innerHTML = profiles.length ? profiles.map(p => `
-    <article class="pair-member-card">
+  const grid = document.getElementById("pair-profile-grid");
+  grid.innerHTML = (profiles.length ? profiles.map((p, i) => `
+    <article class="pair-member-card ${isOwner ? "editable" : ""}" ${isOwner ? `data-index="${i}" tabindex="0" role="button" aria-label="${esc(p.name)} 편집"` : ""}>
       ${p.image_url ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}">` : `<div class="pair-member-ph" aria-hidden="true"></div>`}
       <div class="pair-member-copy">
         <h3>${esc(p.name)}</h3>
@@ -340,14 +335,14 @@ function renderPair() {
         ${p.profile_text ? `<div class="post-body">${esc(p.profile_text).replace(/\n/g,"<br>")}</div>` : ""}
       </div>
     </article>
-  `).join("") : `<p class="muted">프로필이 없습니다.</p>`;
-
-  document.getElementById("relationship-text").innerHTML =
-    pair.relationship_text ? esc(pair.relationship_text).replace(/\n/g,"<br>") : `<span class="muted">소개가 없습니다.</span>`;
-  const introGrid = document.getElementById("pair-intro-images");
-  if (introGrid) introGrid.innerHTML = introImages.length ? introImages.map(img => `
-    <figure class="pair-intro-image"><img src="${img.image_url}" alt="페어 소개 이미지"></figure>
-  `).join("") : "";
+  `).join("") : `<p class="muted">프로필이 없습니다.</p>`)
+    + (isOwner && profiles.length < 8 ? `<button type="button" id="add-member-btn" class="pair-member-add" aria-label="인원 추가"><span>+ 인원 추가</span></button>` : "");
+  grid.querySelectorAll(".pair-member-card.editable").forEach(card => {
+    const open = () => openMemberEditor(Number(card.dataset.index));
+    card.onclick = open;
+    card.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } };
+  });
+  document.getElementById("add-member-btn")?.addEventListener("click", () => openMemberEditor(-1));
 
   renderPosts("log");
   renderPosts("gallery");
@@ -461,216 +456,92 @@ document.getElementById("close-pair-post-view").addEventListener("click", () => 
 });
 
 
-function renderProfileEditor() {
-  if (profiles.length >= 2) {
-    editProfileRows = profiles.map(x => ({...x, file:null, remove:false}));
-  } else {
-    editProfileRows = [
-      ...(profiles.map(x => ({...x, file:null, remove:false}))),
-      ...Array.from({length:2-profiles.length}, (_,i)=>({
-        id:null, name:`인물 ${profiles.length+i+1}`, profile_text:"", hashtags:[], image_url:null, preview_url:null, sort_order:profiles.length+i, file:null, remove:false
-      }))
-    ];
-  }
-  drawProfileEditor();
-}
+let editMemberIndex = -1;
+let memberFile = null;
 
-function syncProfileEditorStateFromDOM() {
-  const cards = Array.from(document.querySelectorAll("#profile-editor-list .member-editor-card"));
-  if (!cards.length) return;
-  cards.forEach((card, i) => {
-    if (!editProfileRows[i]) return;
-    const name = card.querySelector(".profile-name");
-    const text = card.querySelector(".profile-text");
-    const tags = card.querySelector(".profile-hashtags");
-    if (name) editProfileRows[i].name = name.value;
-    if (text) editProfileRows[i].profile_text = text.value;
-    if (tags) editProfileRows[i].hashtags = normalizeHashtags(tags.value);
-  });
-}
-
-function drawProfileEditor() {
-  document.getElementById("profile-editor-list").innerHTML = editProfileRows.map((p,i) => `
-    <div class="member-editor-card" data-row="${i}">
-      <div class="editor-top">
-        <p class="eyebrow">MEMBER ${i+1}</p>
-        ${editProfileRows.length > 2 ? `<button type="button" class="ghost remove-profile-row" data-index="${i}">이 인물 제거</button>` : ""}
-      </div>
-      <label>이름
-        <input class="profile-name" data-index="${i}" type="text" value="${esc(p.name || "")}">
-      </label>
-      ${(p.preview_url || p.image_url) ? `<div class="profile-crop-preview-box"><img class="profile-editor-thumb profile-crop-preview" src="${p.preview_url || p.image_url}" alt=""><span>${p.preview_url ? "저장 전 미리보기" : "현재 대표사진"}</span></div>` : ""}
-      <label>프로필 사진
-        <input class="profile-image" data-index="${i}" type="file" accept="image/*">
-      </label>
-      <label>성격 해시태그
-        <input class="profile-hashtags" data-index="${i}" type="text" value="${esc(hashtagText(p.hashtags))}" placeholder="#호기심많은 #다정한">
-      </label>
-      <label>개별 프로필
-        <textarea class="profile-text" data-index="${i}" rows="6">${esc(p.profile_text || "")}</textarea>
-      </label>
-    </div>
-  `).join("");
-
-  document.querySelectorAll(".remove-profile-row").forEach(btn => {
-    btn.onclick = () => {
-      syncProfileEditorStateFromDOM();
-      editProfileRows.splice(Number(btn.dataset.index), 1);
-      drawProfileEditor();
-    };
-  });
-}
-
-document.getElementById("profile-editor-list").addEventListener("change", async (e) => {
-  const input = e.target.closest(".profile-image");
-  if (!input) return;
-  const index = Number(input.dataset.index);
-  const file = input.files?.[0];
-  if (!file || !editProfileRows[index]) return;
-  // 크롭 후 편집 UI를 다시 그려도 사용자가 입력 중이던 이름/소개가 롤백되지 않게 보존한다.
-  syncProfileEditorStateFromDOM();
-  try {
-    const cropped = await window.cropSquareImage(file);
-    if (cropped) {
-      editProfileRows[index].file = cropped;
-      const reader = new FileReader();
-      reader.onload = () => {
-        editProfileRows[index].preview_url = reader.result;
-        drawProfileEditor();
-      };
-      reader.readAsDataURL(cropped);
-      document.getElementById("profile-edit-msg").textContent = `${editProfileRows[index].name || "프로필"} 사진 크롭이 적용됐어요. 미리보기를 확인한 뒤 저장해 주세요.`;
-    }
-    else { input.value = ""; editProfileRows[index].file = null; }
-  } catch (err) { document.getElementById("profile-edit-msg").textContent = err.message; }
-});
-
-
-function renderIntroImageEditor() {
-  const list = document.getElementById("intro-image-edit-list");
-  if (!list) return;
-  list.innerHTML = editIntroItems.map((item, i) => `
-    <div class="draggable-image-row intro-image-row" draggable="true" data-uid="${item.uid}">
-      <span class="drag-handle" title="드래그해서 순서 변경">⋮⋮</span>
-      <img src="${item.preview || item.image_url}" alt="소개 이미지 ${i+1}">
-      <button type="button" class="ghost intro-image-remove" data-uid="${item.uid}">삭제</button>
-    </div>
-  `).join("");
-  list.querySelectorAll(".intro-image-remove").forEach(btn => btn.addEventListener("click", () => {
-    const uid = btn.dataset.uid;
-    const item = editIntroItems.find(x => x.uid === uid);
-    if (item?.existing && item.image_url) {
-      const path = storagePathFromUrl(item.image_url);
-      if (path) removedIntroPaths.push(path);
-    }
-    if (item?.preview?.startsWith("blob:")) URL.revokeObjectURL(item.preview);
-    editIntroItems = editIntroItems.filter(x => x.uid !== uid);
-    renderIntroImageEditor();
+function rowsFromProfiles() {
+  return profiles.map((p, i) => ({
+    pair_id: pairId,
+    name: p.name || `인물 ${i + 1}`,
+    profile_text: p.profile_text || "",
+    hashtags: normalizeHashtags(p.hashtags),
+    image_url: p.image_url || null,
+    sort_order: i
   }));
-  enablePairImageDrag(list, () => {
-    const order = [...list.querySelectorAll(".intro-image-row")].map(row => row.dataset.uid);
-    editIntroItems = order.map(uid => editIntroItems.find(x => x.uid === uid)).filter(Boolean);
-  });
 }
 
-function initIntroImageEditor() {
-  removedIntroPaths = [];
-  editIntroItems = introImages.map(img => ({
-    uid: `existing-${img.id}`,
-    id: img.id,
-    existing: true,
-    image_url: img.image_url,
-    preview: img.image_url,
-    file: null
-  }));
-  const picker = document.getElementById("intro-image-picker");
-  if (picker) picker.value = "";
-  renderIntroImageEditor();
+// Saves the whole member list. The endpoint also clears the retired pair intro text/images.
+async function saveMemberRows(rows) {
+  const saved = await window.elingneApi("/api/pair-profile", { id: pairId, text: "", profiles: rows, intros: [] });
+  if (saved.error) throw saved.error;
+  await loadPair();
+  window.__elingnePairList = null;
+  loadStrip();
 }
 
-const introPicker = document.getElementById("intro-image-picker");
-const addIntroBtn = document.getElementById("add-intro-image-btn");
-if (addIntroBtn && introPicker) addIntroBtn.addEventListener("click", () => introPicker.click());
-if (introPicker) introPicker.addEventListener("change", () => {
-  for (const file of [...introPicker.files]) {
-    if (!file.type.startsWith("image/")) continue;
-    editIntroItems.push({
-      uid: `new-${crypto.randomUUID()}`,
-      existing: false,
-      file,
-      preview: URL.createObjectURL(file),
-      image_url: null
-    });
-  }
-  introPicker.value = "";
-  renderIntroImageEditor();
-});
+function setMemberPreview(src, note) {
+  document.getElementById("member-preview").innerHTML = src
+    ? `<img class="profile-editor-thumb profile-crop-preview" src="${src}" alt=""><span>${note}</span>` : "";
+}
 
-document.getElementById("edit-pair-profile-btn").addEventListener("click", () => {
-  renderProfileEditor();
-  initIntroImageEditor();
-  document.getElementById("relationship-edit").value = pair?.relationship_text || "";
+function openMemberEditor(index) {
+  editMemberIndex = index;
+  memberFile = null;
+  const m = index >= 0 ? profiles[index] : { name: `인물 ${profiles.length + 1}`, profile_text: "", hashtags: [], image_url: null };
+  document.getElementById("member-title").textContent = index >= 0 ? `${m.name || "인물"} 편집` : "인원 추가";
+  document.getElementById("member-name").value = m.name || "";
+  document.getElementById("member-hashtags").value = hashtagText(m.hashtags);
+  document.getElementById("member-text").value = m.profile_text || "";
+  document.getElementById("member-image").value = "";
+  setMemberPreview(m.image_url, "현재 사진");
+  document.getElementById("delete-member-btn").classList.toggle("hidden", index < 0 || profiles.length <= 2);
   document.getElementById("profile-edit-msg").textContent = "";
   profileDialog.showModal();
-});
+}
 
-document.getElementById("add-profile-person-btn").addEventListener("click", () => {
-  if (editProfileRows.length >= 8) return alert("최대 8명까지 추가할 수 있습니다.");
-  syncProfileEditorStateFromDOM();
-  editProfileRows.push({
-    id:null, name:`인물 ${editProfileRows.length+1}`, profile_text:"", hashtags:[], image_url:null, preview_url:null,
-    sort_order:editProfileRows.length, file:null, remove:false
-  });
-  drawProfileEditor();
-});
-
-document.getElementById("save-profile-btn").addEventListener("click", async () => {
+document.getElementById("member-image").addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
   const msg = document.getElementById("profile-edit-msg");
   try {
+    const cropped = await window.cropSquareImage(file);
+    if (!cropped) { e.target.value = ""; memberFile = null; return; }
+    memberFile = cropped;
+    const reader = new FileReader();
+    reader.onload = () => setMemberPreview(reader.result, "저장 전 미리보기");
+    reader.readAsDataURL(cropped);
+    msg.textContent = "사진 크롭이 적용됐어요. 미리보기를 확인한 뒤 저장해 주세요.";
+  } catch (err) { msg.textContent = err.message; }
+});
+
+document.getElementById("save-profile-btn").addEventListener("click", async (e) => {
+  const btn = e.currentTarget, msg = document.getElementById("profile-edit-msg");
+  if (btn.disabled) return;
+  btn.disabled = true;
+  try {
     msg.textContent = "저장 중...";
-
-    const names = Array.from(document.querySelectorAll(".profile-name"));
-    const texts = Array.from(document.querySelectorAll(".profile-text"));
-    const tags = Array.from(document.querySelectorAll(".profile-hashtags"));
-    const files = Array.from(document.querySelectorAll(".profile-image"));
-
-    const newRows = [];
-    for (let i=0; i<editProfileRows.length; i++) {
-      const base = editProfileRows[i];
-      let image_url = base.image_url || null;
-      const file = base.file || files[i]?.files?.[0];
-      if (file) {
-        const up = await uploadImage(file, `pair/${pairId}/profiles`);
-        image_url = up.url;
-      }
-
-      newRows.push({
-        pair_id: pairId,
-        name: names[i].value.trim() || `인물 ${i+1}`,
-        profile_text: texts[i].value,
-        hashtags: normalizeHashtags(tags[i]?.value || base.hashtags),
-        image_url,
-        sort_order: i
-      });
-    }
-
-    const introRows = [];
-    for (let i = 0; i < editIntroItems.length; i++) {
-      const item = editIntroItems[i];
-      let image_url = item.image_url || null;
-      if (!item.existing && item.file) {
-        const up = await uploadImage(item.file, `pair/${pairId}/intro`);
-        image_url = up.url;
-      }
-      if (image_url) introRows.push({ pair_id: pairId, image_url, sort_order: i });
-    }
-    const saved=await window.elingneApi('/api/pair-profile',{id:pairId,text:document.getElementById('relationship-edit').value,profiles:newRows,intros:introRows});
-    if(saved.error)throw saved.error;
+    const rows = rowsFromProfiles();
+    const base = editMemberIndex >= 0 ? rows[editMemberIndex] : { pair_id: pairId, image_url: null, sort_order: rows.length };
+    if (memberFile) base.image_url = (await uploadImage(memberFile, `pair/${pairId}/profiles`)).url;
+    base.name = document.getElementById("member-name").value.trim() || `인물 ${editMemberIndex >= 0 ? editMemberIndex + 1 : rows.length + 1}`;
+    base.hashtags = normalizeHashtags(document.getElementById("member-hashtags").value);
+    base.profile_text = document.getElementById("member-text").value;
+    if (editMemberIndex < 0) rows.push(base);
+    await saveMemberRows(rows);
     profileDialog.close();
-    await loadPair();
-  } catch (e) {
-    msg.textContent = e.message;
-  }
+  } catch (err) {
+    msg.textContent = err.message || "저장하지 못했어요.";
+  } finally { btn.disabled = false; }
+});
+
+document.getElementById("delete-member-btn").addEventListener("click", async () => {
+  if (editMemberIndex < 0 || profiles.length <= 2) return;
+  if (!confirm("이 인물을 삭제할까요?")) return;
+  try {
+    const rows = rowsFromProfiles().filter((_, i) => i !== editMemberIndex);
+    await saveMemberRows(rows);
+    profileDialog.close();
+  } catch (err) { document.getElementById("profile-edit-msg").textContent = err.message || "삭제하지 못했어요."; }
 });
 
 document.getElementById("edit-pair-btn").addEventListener("click", () => {

@@ -382,7 +382,7 @@ function renderHead() {
 
 function renderProfile() {
   const feed = document.getElementById("profile-feed");
-  feed.classList.add("post-card-grid", "compact-card-grid");
+  feed.classList.add("post-card-grid");
 
   if (!profilePosts.length && character?.profile) {
     legacyProfilePost = { id:"__legacy", title:"프로필", body:character.profile, created_at:character.created_at || new Date().toISOString() };
