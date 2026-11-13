@@ -320,8 +320,10 @@ async function loadStrip() {
       window.__elingneCharList = null;
       window.spaNavigate(`/character/${data.id}`);
     });
+    window.setupEntityStrip?.(strip);
     const active = strip.querySelector(".entity-chip.active");
-    if (active) strip.scrollLeft = Math.max(0, active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2);
+    if (active) strip.scrollLeft += active.getBoundingClientRect().left - strip.getBoundingClientRect().left - 2;
+    strip.__update?.();
   };
   if (list) draw();
   const { data } = await db.from("characters").select("id,name,image_url,coupling_name");

@@ -282,8 +282,10 @@ async function loadStrip() {
         <span class="entity-chip-faces" aria-hidden="true">${(x.faces || []).slice(0, 3).map(f => f ? `<img src="${esc(f)}" alt="">` : `<span class="entity-chip-ph"></span>`).join("")}</span>
         <span class="entity-chip-name">${esc(x.name || "이름 없음")}</span>
       </a>`).join("") + (isOwner ? `<a class="entity-chip entity-chip-add" href="#/pair/new">+ 새 페어</a>` : "");
+    window.setupEntityStrip?.(strip);
     const active = strip.querySelector(".entity-chip.active");
-    if (active) strip.scrollLeft = Math.max(0, active.offsetLeft - (strip.clientWidth - active.offsetWidth) / 2);
+    if (active) strip.scrollLeft += active.getBoundingClientRect().left - strip.getBoundingClientRect().left - 2;
+    strip.__update?.();
   };
   if (list) draw();
   const { data: pairs } = await db.from("pairs").select("id,name");

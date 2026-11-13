@@ -1862,10 +1862,22 @@ button:disabled {
 }
 
 /* v31 entity strip: small cards in one row on top of CHARACTER / PAIR tabs */
+.entity-strip-wrap { display: flex; align-items: center; gap: 6px; margin: 0 0 14px; min-width: 0; }
 .entity-strip {
-  display: flex; align-items: center; gap: 8px; margin: 0 0 16px; padding: 2px 2px 8px;
-  overflow-x: auto; scrollbar-width: thin; white-space: nowrap;
+  flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 8px; margin: 0; padding: 4px 2px 8px;
+  overflow-x: auto; scrollbar-width: none; white-space: nowrap; cursor: grab; user-select: none;
 }
+.entity-strip::-webkit-scrollbar { display: none; }
+.entity-strip.dragging { cursor: grabbing; }
+.entity-strip.dragging .entity-chip { pointer-events: none; }
+.strip-arrow {
+  flex: 0 0 auto; width: 30px; height: 30px; padding: 0; display: none; place-items: center;
+  border: 1px solid var(--line); border-radius: 50%; background: #fff; color: var(--text);
+  font-size: 1.1rem; line-height: 1; cursor: pointer; box-shadow: 0 3px 10px rgba(66,62,92,.06);
+}
+.entity-strip-wrap.has-overflow .strip-arrow { display: grid; }
+.strip-arrow:disabled { opacity: .35; cursor: default; }
+.strip-arrow:not(:disabled):hover { border-color: var(--pink); }
 .entity-chip {
   flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px;
   padding: 5px 14px 5px 5px; border: 1px solid var(--line); border-radius: 999px;
@@ -1885,7 +1897,7 @@ button:disabled {
 .entity-chip-add { padding: 8px 14px; border-style: dashed; color: #6f6e7b; background: transparent; }
 
 @media (min-width: 1024px) {
-  .spa-body .character-page > .entity-strip { grid-column: 1 / -1; grid-row: 1; }
+  .spa-body .character-page > .entity-strip-wrap { grid-column: 1 / -1; grid-row: 1; }
   .spa-body .character-page > .character-head { grid-row: 2 / span 8; }
 }
 .tab-panel { white-space: normal; }
@@ -1958,3 +1970,6 @@ button:disabled {
 .pair-member-add:hover, .pair-member-add:focus-visible { border-color: var(--pink); background: var(--pink-soft); color: #6f6e7b; }
 @media (hover: none) { .pair-member-add { border-color: var(--line); color: #6f6e7b; } }
 #member-preview:empty { display: none; }
+
+/* v34 pair member intro text: small gray */
+.pair-member-copy .post-body { font-size: .78rem; line-height: 1.6; color: #7b7a88; }
