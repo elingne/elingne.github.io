@@ -1775,10 +1775,10 @@ button:disabled {
 /* v30 PC compact layout: left side rail (menu + BGM), denser cards, two-column detail pages */
 .side-rail { display: contents; }
 @media (min-width: 1024px) {
-  .spa-body { padding-left: 248px; font-size: 14px; }
+  .spa-body { padding-left: 288px; font-size: 14px; }
   .spa-body .side-rail {
     display: flex; flex-direction: column; gap: 18px;
-    position: fixed; top: 0; left: 0; bottom: 0; width: 248px; z-index: 20;
+    position: fixed; top: 0; left: 0; bottom: 0; width: 288px; z-index: 20;
     box-sizing: border-box; padding: 22px 14px 18px; overflow-y: auto;
     background: rgba(255,255,255,.72); border-right: 1px solid var(--line);
   }
@@ -1980,3 +1980,6 @@ button:disabled {
 .pair-head.couple { background: linear-gradient(135deg, #fff1f6, #ffe3ef); border-color: var(--pink); }
 .pair-head.couple .eyebrow { color: #b5527f; }
 .coupling-add-btn.on { background: var(--pink-soft); border-color: var(--pink); color: #8f3a62; font-weight: 700; }
+
+/* v36 couple pair cards on main: light pink */
+.pair-card.couple { background: #fff5f9; border-color: var(--pink); }

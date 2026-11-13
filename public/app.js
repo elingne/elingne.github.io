@@ -95,10 +95,12 @@ async function loadPairs() {
     .in("pair_id", pairs.map(x => x.id))
     .order("sort_order");
 
+  pairs.sort((x, y) => (Number(!!y.is_couple) - Number(!!x.is_couple)) || String(x.name || "").localeCompare(String(y.name || ""), "ko"));
+
   grid.innerHTML = pairs.map(pair => {
     const ps = (profiles || []).filter(x => x.pair_id === pair.id).slice(0,8);
     return `
-      <a class="pair-card" href="#/pair/${encodeURIComponent(pair.id)}">
+      <a class="pair-card ${pair.is_couple ? "couple" : ""}" href="#/pair/${encodeURIComponent(pair.id)}">
         <div class="pair-thumbs">
           ${ps.map(p => `<img src="${p.image_url || ""}" alt="${esc(p.name || "")}">`).join("")}
         </div>
