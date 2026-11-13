@@ -328,14 +328,16 @@ function renderPair() {
   document.getElementById("pair-name").textContent = pair.name;
   document.getElementById("pair-summary").textContent = pair.summary || "";
 
+  const av = document.getElementById("pair-avatars");
+  if (av) av.innerHTML = profiles.slice(0, 3).map(p => p.image_url ? `<img src="${esc(p.image_url)}" alt="">` : `<span class="pair-avatar-ph"></span>`).join("");
+
   document.getElementById("pair-profile-grid").innerHTML = profiles.length ? profiles.map(p => `
     <article class="pair-member-card">
-      <img src="${p.image_url || ""}" alt="${esc(p.name)}">
+      ${p.image_url ? `<img src="${esc(p.image_url)}" alt="${esc(p.name)}">` : `<div class="pair-member-ph" aria-hidden="true"></div>`}
       <div class="pair-member-copy">
-        <p class="eyebrow">MEMBER ${Number(p.sort_order)+1}</p>
         <h3>${esc(p.name)}</h3>
         ${renderHashtags(p.hashtags)}
-        <div class="post-body">${esc(p.profile_text || "").replace(/\n/g,"<br>")}</div>
+        ${p.profile_text ? `<div class="post-body">${esc(p.profile_text).replace(/\n/g,"<br>")}</div>` : ""}
       </div>
     </article>
   `).join("") : `<p class="muted">프로필이 없습니다.</p>`;

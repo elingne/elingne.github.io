@@ -364,17 +364,20 @@ function renderHead() {
   }
 
   document.title = `${character.name} | elingne archive`;
+  const tools = document.getElementById("owner-character-tools");
+  if (tools) document.querySelector(".character-page").appendChild(tools);
   document.getElementById("character-head").innerHTML = `
     <img src="${character.image_url || ""}" alt="${esc(character.name)}">
     <div>
       <p class="eyebrow">CHARACTER</p>
-      <h1>${esc(character.name)}</h1>
+      <div class="name-row"><h1>${esc(character.name)}</h1><span id="owner-tools-slot"></span></div>
       ${renderCouplingLine(character)}
       <p class="muted character-summary">${esc(character.summary || "")}</p>
       ${renderHashtags(character.hashtags)}
       ${renderCharacterMeta(character)}
     </div>
   `;
+  if (tools) document.getElementById("owner-tools-slot")?.appendChild(tools);
 }
 
 function renderProfile() {
