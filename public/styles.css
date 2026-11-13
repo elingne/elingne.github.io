@@ -2036,3 +2036,8 @@ button:disabled {
   .spa-body .pair-member-card { grid-template-columns: 84px minmax(0, 1fr); gap: 12px; }
   .spa-body .pair-member-card img, .spa-body .pair-member-ph { width: 84px; height: 84px; }
 }
+
+/* v38 main edit button next to title */
+.name-row > #edit-main-btn { padding: 2px 10px; font-size: .72rem; line-height: 1.6; border-radius: 999px; margin: 0; }
+.main-profile-copy .name-row { margin: 2px 0 6px; }
+.main-profile-copy .name-row h1 { margin: 0; }
